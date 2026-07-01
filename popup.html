@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Registration SpeedRunner</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">UT Registration</p>
+          <h1>SpeedRunner</h1>
+          <p class="subtitle">Column-based unique numbers with fast backup hotkeys.</p>
+        </div>
+        <label class="switch" title="Turn hotkeys on/off">
+          <input id="enabledToggle" type="checkbox" />
+          <span class="slider"></span>
+        </label>
+      </section>
+
+      <section id="tutorialCard" class="tutorial-card" aria-label="Quick start tutorial" hidden>
+        <div class="tutorial-top">
+          <div>
+            <p class="eyebrow">Quick start</p>
+            <h2>Set up your queue</h2>
+          </div>
+          <button id="dismissTutorialBtn" class="tutorial-close" aria-label="Dismiss tutorial">×</button>
+        </div>
+        <ol>
+          <li>Add one class card per course.</li>
+          <li>Put unique numbers in priority order, one per line.</li>
+          <li>Click <strong>Use</strong> on the class you want first.</li>
+          <li>On the registration page, click the input box and use the hotkeys.</li>
+        </ol>
+        <div class="tutorial-hotkeys">
+          <span><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> paste</span>
+          <span><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>A</kbd> previous</span>
+          <span><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> next class</span>
+        </div>
+        <p class="tutorial-note">Tip: drag the overlay by its orange header and resize it from the bottom-right corner.</p>
+      </section>
+      <section class="toolbar">
+        <button id="addCourseBtn" class="primary">+ Add class</button>
+        <button id="sampleBtn">Load sample</button>
+        <button id="resetBtn">Reset positions</button>
+        <button id="restoreCoursesBtn" class="restore-btn" title="Restore all deleted classes" aria-label="Restore all deleted classes">&#x21bb;</button>
+      </section>
+
+      <section id="courses" class="courses" aria-label="Course unique number columns"></section>
+
+      <section class="footer-actions">
+        <button id="saveBtn" class="save">Save changes</button>
+        <button id="helpBtn">Help</button>
+        <button id="exportBtn">Export</button>
+        <button id="importBtn">Import</button>
+        <input id="importFile" type="file" accept="application/json" hidden />
+      </section>
+
+      <p class="tiny-note">
+        Tip: click the registration input box first, then press <strong>Ctrl+Shift+S</strong>.
+      </p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

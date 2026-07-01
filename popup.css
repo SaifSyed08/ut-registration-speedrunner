@@ -1,0 +1,339 @@
+:root {
+  --burnt: #bf5700;
+  --burnt-dark: #8f3f00;
+  --ink: #171717;
+  --muted: #676767;
+  --line: #e9e1d9;
+  --soft: #fff8f1;
+  --card: #ffffff;
+  --shadow: none;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  width: 420px;
+  min-height: 560px;
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(191, 87, 0, 0.14), transparent 32%),
+    linear-gradient(180deg, #fffaf4 0%, #f8efe5 100%);
+}
+
+.app { padding: 10px; }
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid #ded6ce;
+  box-shadow: none;
+}
+
+.eyebrow {
+  margin: 0 0 1px;
+  color: var(--burnt);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.switch { position: relative; display: inline-block; width: 50px; height: 30px; flex: 0 0 auto; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #d1c7bd;
+  border-radius: 999px;
+  transition: 0.18s ease;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+}
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.18s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+input:checked + .slider { background: var(--burnt); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+.tutorial-card {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(191, 87, 0, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 8px 18px rgba(48, 30, 12, 0.08);
+}
+.tutorial-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.tutorial-close {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 999px;
+  color: #8b1e0b;
+  background: #ffe7dc;
+}
+.tutorial-card ol {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: #4b4038;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.tutorial-hotkeys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.tutorial-hotkeys kbd {
+  min-width: 20px;
+  padding: 1px 4px;
+  border-radius: 5px;
+  font-size: 10px;
+}
+.tutorial-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.toolbar, .footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.toolbar { margin-top: 9px; }
+.footer-actions { margin-top: 8px; margin-bottom: 6px; }
+
+button {
+  border: 1px solid #e3d9cf;
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  color: #2c2520;
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 650;
+  font-size: 12px;
+  transition: background .12s ease, border-color .12s ease, transform .12s ease;
+}
+button:hover { background: #fff; border-color: #d7c9bd; transform: translateY(-1px); }
+button:active { transform: translateY(0); }
+button:disabled { cursor: default; opacity: .38; transform: none; }
+.toolbar button:not(.restore-btn) { padding: 7px 9px; font-size: 11px; font-weight: 650; }
+.primary, .save { color: white; border-color: #a94f08; background: #bf5700; }`r`n.primary:hover, .save:hover { color: white; border-color: #8f3f00; background: #a94f08; }
+.save { flex: 1; }
+.restore-btn {
+  width: 32px;
+  height: 30px;
+  margin-left: auto;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.courses {
+  display: grid;
+  gap: 8px;
+  max-height: 374px;
+  overflow: auto;
+  padding-right: 2px;
+}
+.course-card {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgba(255,255,255,.88);
+  border: 1px solid var(--line);
+  box-shadow: 0 6px 16px rgba(48, 30, 12, 0.07);
+}
+.course-card.active {
+  border-color: rgba(191, 87, 0, 0.55);
+  box-shadow: 0 8px 20px rgba(191, 87, 0, 0.13);
+}
+.course-card.active .course-grip { box-shadow: inset 0 0 0 2px rgba(255,255,255,.32); }
+.course-main {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  min-width: 0;
+}
+.course-grip {
+  display: grid;
+  grid-template-columns: repeat(2, 4px);
+  grid-template-rows: repeat(2, 4px);
+  place-content: center;
+  gap: 4px;
+  background: var(--course-color, var(--burnt));
+  cursor: grab;
+  touch-action: none;
+}
+.course-grip:active { cursor: grabbing; }
+.course-grip span {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.92);
+}
+.course-fields {
+  min-width: 0;
+  padding: 9px 10px 8px;
+}
+.course-top {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px auto auto;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.course-name {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 9px;
+  font-size: 14px;
+  font-weight: 650;
+  outline: none;
+  background: #fff;
+}
+.course-name:focus, textarea:focus { border-color: var(--burnt); box-shadow: 0 0 0 2px rgba(191, 87, 0, 0.12); }
+.color-menu-btn {
+  width: 28px;
+  height: 30px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 9px;
+  background: var(--swatch-color);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.13);
+}
+.color-menu-btn:hover { background: var(--swatch-color); }
+.course-palette {
+  position: absolute;
+  z-index: 5;
+  top: 34px;
+  right: 64px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 126px;
+  padding: 8px;
+  border: 1px solid #e3d9cf;
+  border-radius: 12px;
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 8px 20px rgba(48, 30, 12, 0.14);
+}
+.course-palette[hidden] { display: none; }
+.color-swatch {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--swatch-color);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.12);
+}
+.color-swatch:hover { transform: translateY(-1px); background: var(--swatch-color); }
+.color-swatch.active { box-shadow: 0 0 0 2px rgba(29, 19, 11, .55); }
+.course-card.dragging { opacity: .55; }
+.course-card.drag-over { outline: 2px solid var(--course-color, var(--burnt)); outline-offset: 2px; }
+.badge {
+  border-radius: 9px;
+  padding: 7px 8px;
+  color: var(--burnt-dark);
+  background: var(--soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 9px;
+  color: #8b1e0b;
+  background: #ffe7dc;
+}
+textarea {
+  width: 100%;
+  min-height: 46px;
+  max-height: 90px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 7px 9px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.25;
+  outline: none;
+  background: #fff;
+}
+.card-note {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.tiny-note {
+  margin: 6px 2px 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+.empty {
+  padding: 14px;
+  border: 1px dashed rgba(191,87,0,.35);
+  border-radius: 14px;
+  color: var(--muted);
+  background: rgba(255,255,255,.62);
+  text-align: center;
+  font-size: 13px;
+}

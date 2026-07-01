@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SpeedRunner Test Registration Page</title>
+    <style>
+      :root { --burnt: #bf5700; --ink: #171717; --line: #e6ddd4; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        color: var(--ink);
+        background: linear-gradient(135deg, #fff8ef, #f3e3d5);
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      main {
+        width: min(760px, calc(100vw - 32px));
+        padding: 28px;
+        border: 1px solid rgba(191,87,0,.18);
+        border-radius: 28px;
+        background: rgba(255,255,255,.84);
+        box-shadow: 0 24px 70px rgba(45, 28, 14, .16);
+      }
+      h1 { margin: 0 0 8px; letter-spacing: -.04em; }
+      p { margin: 0 0 24px; color: #6a5d52; }
+      .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+      label { display: grid; gap: 7px; color: #6a5d52; font-size: 13px; font-weight: 800; }
+      input {
+        height: 48px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 0 14px;
+        font-size: 18px;
+        font-weight: 800;
+        outline: none;
+      }
+      input:focus { border-color: var(--burnt); box-shadow: 0 0 0 4px rgba(191,87,0,.13); }
+      button {
+        margin-top: 18px;
+        border: 0;
+        border-radius: 14px;
+        padding: 13px 16px;
+        color: white;
+        background: var(--burnt);
+        font-weight: 900;
+      }
+      .tip { margin-top: 18px; padding: 14px; border-radius: 18px; background: #fff8ef; color: #6a5d52; }
+      kbd { padding: 3px 7px; border-radius: 7px; color: white; background: #bf5700; font-weight: 900; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Practice Registration Form</h1>
+      <p>Use this fake page to practice before registration.</p>
+      <div class="grid">
+        <label>Unique number 1<input placeholder="Click here, press Ctrl+Shift+S" /></label>
+        <label>Unique number 2<input placeholder="Click here, press Ctrl+Shift+S" /></label>
+        <label>Unique number 3<input placeholder="Click here, press Ctrl+Shift+S" /></label>
+        <label>Unique number 4<input placeholder="Click here, press Ctrl+Shift+S" /></label>
+      </div>
+      <button type="button">Fake submit</button>
+      <div class="tip">
+        <strong>Flow:</strong> click an input, press <kbd>Ctrl+Shift+S</kbd> to fill and advance, use <kbd>Ctrl+Shift+A</kbd> for the previous backup, then press <kbd>Ctrl+Shift+F</kbd> for the next class.
+      </div>
+    </main>
+  </body>
+</html>
