@@ -15,7 +15,7 @@ const defaultState = {
 };
 
 let state = structuredClone(defaultState);
-let tutorialSeen = false;
+let tutorialSeen = true;
 let draggedCourseIndex = null;
 
 const $ = (id) => document.getElementById(id);
@@ -33,7 +33,7 @@ function normalizeState(input) {
   next.currentCol = Number.isInteger(next.currentCol) ? next.currentCol : 0;
   next.courses = Array.isArray(next.courses) ? next.courses : [];
   next.deletedCourses = Array.isArray(next.deletedCourses) ? next.deletedCourses : [];
-  next.courses = next.courses.map((course) => {
+  next.courses = next.courses.map((course, index) => {
     const uniques = Array.isArray(course.uniques)
       ? course.uniques.map(String).map((u) => u.trim()).filter(Boolean)
       : String(course.uniques || "").split(/\s+/).map((u) => u.trim()).filter(Boolean);
@@ -42,10 +42,10 @@ function normalizeState(input) {
       name: String(course.name || "Untitled class").trim() || "Untitled class",
       uniques,
       row: Math.max(0, Math.min(row, uniques.length)),
-      color: normalizeColor(course.color)
+      color: normalizeColor(course.color, COURSE_COLORS[index % COURSE_COLORS.length])
     };
   });
-  next.deletedCourses = next.deletedCourses.map((course) => {
+  next.deletedCourses = next.deletedCourses.map((course, index) => {
     const uniques = Array.isArray(course.uniques)
       ? course.uniques.map(String).map((u) => u.trim()).filter(Boolean)
       : [];
@@ -54,7 +54,7 @@ function normalizeState(input) {
       name: String(course.name || "Untitled class").trim() || "Untitled class",
       uniques,
       row: Math.max(0, Math.min(row, uniques.length)),
-      color: normalizeColor(course.color)
+      color: normalizeColor(course.color, COURSE_COLORS[index % COURSE_COLORS.length])
     };
   });
   if (next.courses.length === 0) next.currentCol = 0;
@@ -74,10 +74,8 @@ async function loadState() {
   } else if (state.deletedCourses.length) {
     await chrome.storage.local.set({ [DELETED_COURSES_KEY]: state.deletedCourses });
   }
-  tutorialSeen = Boolean(result[TUTORIAL_SEEN_KEY]);
-  if (!storedState) {
-    await chrome.storage.local.set({ [STORAGE_KEY]: state });
-  }
+  tutorialSeen = result[TUTORIAL_SEEN_KEY] !== false;
+  await chrome.storage.local.set({ [STORAGE_KEY]: state });
   render();
 }
 
@@ -163,7 +161,7 @@ function renderCourses() {
               ${COURSE_COLORS.map((color) => `<button class="color-swatch ${color === course.color ? "active" : ""}" type="button" data-color="${color}" data-action="set-color" style="--swatch-color: ${color}" aria-label="Use color ${color}"></button>`).join("")}
             </div>
             <button class="badge" data-action="set-current" title="Make this the current class">${index === state.currentCol ? "Active" : "Use"}</button>
-            <button class="icon-btn" data-action="delete" title="Delete class">×</button>
+            <button class="icon-btn" data-action="delete" title="Delete class">&times;</button>
           </div>
           <textarea aria-label="Unique numbers" spellcheck="false">${escapeHtml(course.uniques.join("\n"))}</textarea>
           <div class="card-note">
@@ -204,7 +202,7 @@ function escapeHtml(value) {
 function flashSave() {
   const btn = $("saveBtn");
   const old = btn.textContent;
-  btn.textContent = "Saved ✓";
+  btn.textContent = "Saved";
   setTimeout(() => { btn.textContent = old; }, 850);
 }
 

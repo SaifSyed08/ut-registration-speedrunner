@@ -2,6 +2,7 @@ const STORAGE_KEY = "regSpeedRunnerState";
 const DELETED_COURSES_KEY = "regSpeedRunnerDeletedCourses";
 const OVERLAY_GEOMETRY_KEY = "regSpeedRunnerOverlayGeometry";
 const HUD_ID = "reg-speedrunner-hud";
+const DEFAULT_COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#bf5700"];
 
 let state = null;
 let messageTimer = null;
@@ -59,7 +60,7 @@ function normalizeState(input) {
   next.currentCol = Number.isInteger(next.currentCol) ? next.currentCol : 0;
   next.courses = Array.isArray(next.courses) ? next.courses : [];
   next.deletedCourses = Array.isArray(next.deletedCourses) ? next.deletedCourses : [];
-  next.courses = next.courses.map((course) => {
+  next.courses = next.courses.map((course, index) => {
     const uniques = Array.isArray(course.uniques)
       ? course.uniques.map(String).map((u) => u.trim()).filter(Boolean)
       : [];
@@ -68,10 +69,10 @@ function normalizeState(input) {
       name: String(course.name || "Untitled class").trim() || "Untitled class",
       uniques,
       row: Math.max(0, Math.min(row, uniques.length)),
-      color: normalizeColor(course.color)
+      color: normalizeColor(course.color, DEFAULT_COURSE_COLORS[index % DEFAULT_COURSE_COLORS.length])
     };
   });
-  next.deletedCourses = next.deletedCourses.map((course) => {
+  next.deletedCourses = next.deletedCourses.map((course, index) => {
     const uniques = Array.isArray(course.uniques)
       ? course.uniques.map(String).map((u) => u.trim()).filter(Boolean)
       : [];
@@ -80,7 +81,7 @@ function normalizeState(input) {
       name: String(course.name || "Untitled class").trim() || "Untitled class",
       uniques,
       row: Math.max(0, Math.min(row, uniques.length)),
-      color: normalizeColor(course.color)
+      color: normalizeColor(course.color, DEFAULT_COURSE_COLORS[index % DEFAULT_COURSE_COLORS.length])
     };
   });
   if (next.courses.length === 0) next.currentCol = 0;
