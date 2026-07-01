@@ -99,6 +99,7 @@ function loadState() {
     }
     renderHud("Ready");
     applyOverlayGeometry(result[OVERLAY_GEOMETRY_KEY]);
+    updateOverlayCompactClasses(createHud());
     overlayGeometryLoaded = true;
   });
 }
@@ -286,7 +287,14 @@ function applyOverlayGeometry(geometry) {
   if (Number.isFinite(top)) hud.style.top = `${Math.max(0, Math.min(top, window.innerHeight - hud.offsetHeight))}px`;
 }
 
+
+function updateOverlayCompactClasses(hud) {
+  const rect = hud.getBoundingClientRect();
+  hud.classList.toggle("reg-compact-width", rect.width <= 310);
+  hud.classList.toggle("reg-compact-height", rect.height <= 230);
+}
 function saveOverlayGeometry(hud) {
+  updateOverlayCompactClasses(hud);
   if (!overlayGeometryLoaded) return;
   const rect = hud.getBoundingClientRect();
   storage.set({
@@ -338,6 +346,7 @@ function enableOverlayDragging(hud) {
 function observeOverlayResize(hud) {
   if (typeof ResizeObserver !== "function") return;
   const observer = new ResizeObserver(() => {
+    updateOverlayCompactClasses(hud);
     clearTimeout(resizeSaveTimer);
     resizeSaveTimer = setTimeout(() => saveOverlayGeometry(hud), 180);
   });
