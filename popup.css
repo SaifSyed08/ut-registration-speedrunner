@@ -100,27 +100,13 @@ input:checked + .slider:before { transform: translateX(20px); }
   font-size: 11px;
   line-height: 1.25;
 }
-.quick-links {
-  display: flex;
-  gap: 6px;
-  margin-top: 7px;
-}
-.quick-links a {
-  flex: 1;
-  padding: 7px 8px;
-  border: 1px solid #e3d9cf;
-  border-radius: 8px;
-  color: #2c2520;
-  background: rgba(255, 255, 255, 0.72);
+.site-alert {
+  margin: 7px 2px 0;
+  color: #b42318;
   font-size: 11px;
   font-weight: 700;
-  text-align: center;
+  line-height: 1.28;
 }
-.quick-links a:hover {
-  background: #fff;
-  border-color: #d7c9bd;
-}
-
 .tutorial-card {
   margin-top: 8px;
   padding: 10px 12px;
@@ -179,7 +165,7 @@ input:checked + .slider:before { transform: translateX(20px); }
   margin-bottom: 4px;
 }
 .toolbar { margin-top: 6px; }
-.footer-actions { margin-top: 6px; margin-bottom: 5px; }
+.footer-actions { margin-top: 6px; margin-bottom: 5px; flex-wrap: wrap; }
 
 button, .button-link {
   border: 1px solid #e3d9cf;
@@ -197,7 +183,7 @@ button, .button-link {
 button:hover, .button-link:hover { background: #fff; border-color: #d7c9bd; transform: translateY(-1px); }
 button:active, .button-link:active { transform: translateY(0); }
 button:disabled { cursor: default; opacity: .38; transform: none; }
-.toolbar button:not(.restore-btn) { padding: 6px 9px; font-size: 11px; font-weight: 500; }
+.toolbar button { padding: 6px 9px; font-size: 11px; font-weight: 500; }
 .primary, .save { color: white; border-color: #a94f08; background: #bf5700; }
 .primary:hover, .save:hover { color: white; border-color: #8f3f00; background: #9f4700; }
 .save { flex: 1; }
@@ -206,16 +192,8 @@ button:disabled { cursor: default; opacity: .38; transform: none; }
   align-items: center;
   justify-content: center;
   min-height: 31px;
+  flex: 1 1 130px;
 }
-.restore-btn {
-  width: 32px;
-  height: 30px;
-  margin-left: auto;
-  padding: 0;
-  font-size: 18px;
-  line-height: 1;
-}
-
 .courses {
   display: grid;
   gap: 8px;

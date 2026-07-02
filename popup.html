@@ -12,19 +12,14 @@
         <div>
           <p class="eyebrow">UT Registration</p>
           <h1>SpeedRunner</h1>
-          <p class="subtitle">Works only on https://utdirect.utexas.edu, https://registrar.utexas.edu, and the practice mock.</p>
+          <p class="subtitle">Register faster. Secure your ideal schedule.</p>
         </div>
         <label class="switch" title="Your extension is active on supported registration pages when this is on.">
           <input id="enabledToggle" type="checkbox" />
           <span class="slider"></span>
         </label>
       </section>
-
-      <p class="reload-alert"><strong>Reload any open registration page after installing or updating the extension.</strong></p>
-      <nav class="quick-links" aria-label="Registration links">
-        <a href="https://utdirect.utexas.edu/registration/chooseSemester.WBX" target="_blank" rel="noreferrer">Actual registration</a>
-        <a href="https://saifsyed08.github.io/ut-registration-speedrunner/index.html" target="_blank" rel="noreferrer">Practice mock</a>
-      </nav>
+      <p id="reloadAlert" class="reload-alert" hidden><strong>You may need to reload webpage to see extension. (Ctrl + R)</strong></p>
 
       <section id="tutorialCard" class="tutorial-card" aria-label="Quick start tutorial" hidden>
         <div class="tutorial-top">
@@ -61,13 +56,13 @@
       </section>
       <section id="courses" class="courses" aria-label="Course unique number columns"></section>
 
+      <p id="supportedPageNotice" class="site-alert" hidden>This extension is active only on the UT Austin registration page, Course Schedule, or mock registration page. Use the buttons below to open one.</p>
+
       <section class="footer-actions">
         <button id="saveBtn" class="save">Save changes</button>
         <button id="helpBtn">Help</button>
-        <a class="button-link" href="https://github.com/SaifSyed08/ut-registration-speedrunner/issues" target="_blank" rel="noreferrer">Feedback</a>
-        <button id="exportBtn">Export</button>
-        <button id="importBtn">Import</button>
-        <input id="importFile" type="file" accept="application/json" hidden />
+        <a class="button-link" href="https://utdirect.utexas.edu/registration/chooseSemester.WBX" target="_blank" rel="noreferrer">Real Registration</a>
+        <a class="button-link" href="https://saifsyed08.github.io/ut-registration-speedrunner/index.html" target="_blank" rel="noreferrer">Mock Registration</a>
       </section>
 
       <p class="tiny-note">

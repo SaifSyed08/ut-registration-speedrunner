@@ -3,6 +3,11 @@ const DELETED_COURSES_KEY = "regSpeedRunnerDeletedCourses";
 const TUTORIAL_SEEN_KEY = "regSpeedRunnerTutorialSeen";
 const FIRST_RUN_CARD_SEEN_KEY = "regSpeedRunnerFirstRunCardSeen";
 const COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#64748b", "#bf5700"];
+const SUPPORTED_PAGE_PATTERNS = [
+  /^https:\/\/utdirect\.utexas\.edu\//,
+  /^https:\/\/registrar\.utexas\.edu\//,
+  /^https:\/\/saifsyed08\.github\.io\/ut-registration-speedrunner\//
+];
 
 const defaultState = {
   enabled: true,
@@ -182,6 +187,7 @@ function render() {
   renderStatus();
   renderCourses();
   $("tutorialCard").hidden = tutorialSeen;
+  $("reloadAlert").hidden = firstRunCardSeen;
   $("sampleScheduleCallout").hidden = firstRunCardSeen;
 }
 
@@ -205,6 +211,21 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
+async function updateSupportedPageNotice() {
+  const notice = $("supportedPageNotice");
+  if (!globalThis.chrome?.tabs?.query) {
+    notice.hidden = false;
+    return;
+  }
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const url = tab?.url || "";
+    notice.hidden = SUPPORTED_PAGE_PATTERNS.some((pattern) => pattern.test(url));
+  } catch (_) {
+    notice.hidden = false;
+  }
+}
 function flashSave() {
   const btn = $("saveBtn");
   const old = btn.textContent;
@@ -328,32 +349,6 @@ document.addEventListener("click", (event) => {
   if (event.target.closest(".course-palette, .color-menu-btn")) return;
   document.querySelectorAll(".course-palette").forEach((palette) => { palette.hidden = true; });
 });
-$("exportBtn").addEventListener("click", () => {
-  const data = JSON.stringify(collectFromDom(), null, 2);
-  const blob = new Blob([data], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "registration-speedrunner-courses.json";
-  a.click();
-  URL.revokeObjectURL(url);
-});
-
-$("importBtn").addEventListener("click", () => $("importFile").click());
-$("importFile").addEventListener("change", async (event) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  try {
-    const imported = JSON.parse(await file.text());
-    state = normalizeState(imported);
-    await chrome.storage.local.set({ [STORAGE_KEY]: state });
-    render();
-  } catch (error) {
-    alert("That JSON file could not be imported.");
-  } finally {
-    event.target.value = "";
-  }
-});
 
 // Autosave after edits so the HUD updates without making you remember.
 let autosaveTimer;
@@ -362,4 +357,5 @@ document.addEventListener("input", () => {
   autosaveTimer = setTimeout(() => saveState(false), 400);
 });
 
+updateSupportedPageNotice();
 loadState();

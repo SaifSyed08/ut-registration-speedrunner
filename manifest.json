@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "UT Registration SpeedRunner",
   "version": "1.2.0",
-  "description": "Queue UT registration Unique Numbers with hotkeys on supported registration pages.",
+  "description": "Register faster. Secure your ideal schedule.",
   "permissions": [
     "storage"
   ],
