@@ -4,7 +4,8 @@
   "version": "1.2.0",
   "description": "Register faster. Secure your ideal schedule.",
   "permissions": [
-    "storage"
+    "storage",
+    "activeTab"
   ],
   "action": {
     "default_title": "Registration SpeedRunner",
