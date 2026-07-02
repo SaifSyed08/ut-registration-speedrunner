@@ -200,10 +200,10 @@ button:disabled { cursor: default; opacity: .38; transform: none; }
 .button-link[data-tooltip]::after {
   position: absolute;
   z-index: 20;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  width: 188px;
-  padding: 7px 8px;
+  bottom: calc(100% + 5px);
+  width: 210px;
+  max-width: calc(100vw - 28px);
+  padding: 6px 8px;
   border-radius: 7px;
   color: #fff;
   background: #1f2937;
@@ -212,17 +212,20 @@ button:disabled { cursor: default; opacity: .38; transform: none; }
   font-family: "Aptos", "Segoe UI", system-ui, sans-serif;
   font-size: 10px;
   font-weight: 650;
-  line-height: 1.25;
+  line-height: 1.2;
   opacity: 0;
   pointer-events: none;
   text-align: left;
-  transform: translate(-50%, 3px);
+  transform: translateY(2px);
   transition: opacity .05s ease, transform .05s ease;
+  white-space: normal;
 }
+.button-link[data-tooltip]:first-of-type::after { left: 0; }
+.button-link[data-tooltip]:last-of-type::after { right: 0; }
 .button-link[data-tooltip]:hover::after,
 .button-link[data-tooltip]:focus-visible::after {
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: translateY(0);
 }
 .courses {
   display: grid;
