@@ -493,4 +493,12 @@ storage.onChanged((changes, area) => {
   renderHud("Settings updated");
 });
 
+
+if (globalThis.chrome?.runtime?.onMessage) {
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message?.type !== "regSpeedRunnerPing") return false;
+    sendResponse({ ok: true });
+    return true;
+  });
+}
 loadState();

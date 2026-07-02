@@ -3,11 +3,6 @@ const DELETED_COURSES_KEY = "regSpeedRunnerDeletedCourses";
 const TUTORIAL_SEEN_KEY = "regSpeedRunnerTutorialSeen";
 const FIRST_RUN_CARD_SEEN_KEY = "regSpeedRunnerFirstRunCardSeen";
 const COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#eab308", "#84cc16", "#64748b", "#bf5700"];
-const SUPPORTED_PAGE_PATTERNS = [
-  /^https:\/\/utdirect\.utexas\.edu\//,
-  /^https:\/\/registrar\.utexas\.edu\//,
-  /^https:\/\/saifsyed08\.github\.io\/ut-registration-speedrunner\//
-];
 
 const defaultState = {
   enabled: true,
@@ -213,15 +208,19 @@ function escapeHtml(value) {
 
 async function updateSupportedPageNotice() {
   const notice = $("supportedPageNotice");
-  if (!globalThis.chrome?.tabs?.query) {
+  if (!globalThis.chrome?.tabs?.query || !globalThis.chrome?.tabs?.sendMessage) {
     notice.hidden = false;
     return;
   }
 
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    const url = tab?.url || "";
-    notice.hidden = SUPPORTED_PAGE_PATTERNS.some((pattern) => pattern.test(url));
+    if (!tab?.id) {
+      notice.hidden = false;
+      return;
+    }
+    const response = await chrome.tabs.sendMessage(tab.id, { type: "regSpeedRunnerPing" });
+    notice.hidden = response?.ok === true;
   } catch (_) {
     notice.hidden = false;
   }
