@@ -1,4 +1,5 @@
 const STORAGE_KEY = "regSpeedRunnerState";
+const FIRST_RUN_CARD_SEEN_KEY = "regSpeedRunnerFirstRunCardSeen";
 
 const DEFAULT_STATE = {
   enabled: true,
@@ -11,9 +12,14 @@ const DEFAULT_STATE = {
   ]
 };
 
-chrome.runtime.onInstalled.addListener(async () => {
-  const result = await chrome.storage.local.get(STORAGE_KEY);
-  if (!result[STORAGE_KEY]) {
-    await chrome.storage.local.set({ [STORAGE_KEY]: DEFAULT_STATE });
+chrome.runtime.onInstalled.addListener(async (details) => {
+  const result = await chrome.storage.local.get([STORAGE_KEY, FIRST_RUN_CARD_SEEN_KEY]);
+  const values = {};
+
+  if (!result[STORAGE_KEY]) values[STORAGE_KEY] = DEFAULT_STATE;
+  if (result[FIRST_RUN_CARD_SEEN_KEY] === undefined) {
+    values[FIRST_RUN_CARD_SEEN_KEY] = details.reason === "install" ? false : true;
   }
+
+  if (Object.keys(values).length) await chrome.storage.local.set(values);
 });

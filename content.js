@@ -2,7 +2,7 @@ const STORAGE_KEY = "regSpeedRunnerState";
 const DELETED_COURSES_KEY = "regSpeedRunnerDeletedCourses";
 const OVERLAY_GEOMETRY_KEY = "regSpeedRunnerOverlayGeometry";
 const HUD_ID = "reg-speedrunner-hud";
-const DEFAULT_COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#bf5700"];
+const DEFAULT_COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#64748b", "#bf5700"];
 
 let state = null;
 let messageTimer = null;
@@ -131,14 +131,14 @@ function createHud() {
   hud = document.createElement("div");
   hud.id = HUD_ID;
   hud.innerHTML = `
-    <div class="reg-topbar">
+    <div class="reg-topbar" title="Drag to move overlay">
       <div>
         <span class="reg-title">Registration SpeedRunner</span>
-        <span class="reg-subtitle">Live course queue</span>
+        <span class="reg-subtitle">Drag to move overlay</span>
       </div>
       <div class="reg-top-actions">
-        <span class="reg-pill">ON</span>
-        <button class="reg-restore-btn" data-reg-action="rewind-backups" type="button" title="Return every class to its first unique" aria-label="Return every class to its first unique">&#x21bb;</button>
+        <span class="reg-pill" title="Your extension is active!">ON</span>
+        <button class="reg-restore-btn" data-reg-action="rewind-backups" type="button" title="Reload lists to first uniques" aria-label="Reload lists to first uniques">&#x21bb;</button>
       </div>
     </div>
     <div class="reg-body">

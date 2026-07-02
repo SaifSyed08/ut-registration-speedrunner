@@ -1,0 +1,707 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registration</title>
+  <style>
+    :root {
+      --ut-burnt: #bf5700;
+      --ut-burnt-dark: #9b4300;
+      --ink: #12324b;
+      --link: #005eab;
+      --page: #eef1f2;
+      --panel: #f8f9fa;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      background: #eceff0;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      color: #122d46;
+    }
+
+    .mock-disclaimer {
+      min-width: 950px;
+      padding: 10px 18px;
+      color: #ffffff;
+      background: #1f2937;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .mock-disclaimer strong { color: #ffd166; }
+    .mock-disclaimer a { color: #ffffff; font-weight: bold; }
+
+    .topbar {
+      height: 63px;
+      min-width: 950px;
+      border-bottom: 3px solid #d9d9d9;
+      background: linear-gradient(90deg, #863a00 0%, #9f4600 26%, #b54d00 65%, #b85100 100%);
+      box-shadow: inset 0 -1px 0 rgba(80,35,0,.35);
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand-wrap {
+      position: absolute;
+      left: 12px;
+      top: 0;
+      width: 150px;
+      height: 138px;
+      background: linear-gradient(90deg, #a94700 0%, #bf5700 57%, #a94700 100%);
+      color: white;
+      text-align: center;
+      box-shadow: 2px 3px 5px rgba(0,0,0,.34);
+      clip-path: polygon(0 0,100% 0,100% 106px,50% 138px,0 106px);
+    }
+
+    .brand-wrap::after {
+      content: "";
+      position: absolute;
+      left: 9px;
+      right: 9px;
+      bottom: 33px;
+      height: 23px;
+      opacity: .45;
+      background: repeating-linear-gradient(90deg, rgba(255,255,255,.34) 0 1px, transparent 1px 3px);
+    }
+
+    .brand-small {
+      padding-top: 18px;
+      font-size: 11px;
+      line-height: 10px;
+      font-weight: bold;
+      letter-spacing: .7px;
+      white-space: nowrap;
+    }
+
+    .brand-main {
+      margin-top: 1px;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 36px;
+      line-height: 29px;
+      font-weight: bold;
+      letter-spacing: -1.5px;
+    }
+
+    .brand-sub {
+      margin-top: 3px;
+      font-size: 11px;
+      line-height: 11px;
+      letter-spacing: .8px;
+      font-weight: bold;
+    }
+
+    .ut-direct-mark {
+      position: absolute;
+      top: 135px;
+      left: 29px;
+      width: 106px;
+      color: #7d7d7d;
+      font-family: Arial, sans-serif;
+      font-style: italic;
+      font-size: 12px;
+      font-weight: bold;
+      text-shadow: 0 1px white;
+      white-space: nowrap;
+    }
+
+    .horn {
+      color: #b85100;
+      font-size: 15px;
+      vertical-align: -1px;
+      letter-spacing: -4px;
+      margin-right: 3px;
+    }
+
+    .top-actions {
+      position: absolute;
+      top: 0;
+      right: 18px;
+      height: 59px;
+      display: flex;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      font-size: 13px;
+      gap: 11px;
+    }
+
+    .top-actions a { color: white; text-decoration: none; }
+    .top-actions a:hover { text-decoration: underline; }
+
+    .divider {
+      height: 18px;
+      width: 1px;
+      background: rgba(255,255,255,.3);
+      display: block;
+    }
+
+    .home-icon {
+      width: 30px;
+      height: 30px;
+      margin-left: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 19px;
+      line-height: 1;
+      border-radius: 50%;
+      color: #fff;
+      background: radial-gradient(circle at 42% 38%, #ffc28c 0 12%, #f06b18 32%, #bd4e00 72%);
+      border: 2px solid rgba(255,255,255,.45);
+      box-shadow: 0 1px 2px rgba(0,0,0,.32);
+    }
+
+    .search-icon {
+      width: 30px;
+      height: 30px;
+      position: relative;
+      margin-left: 8px;
+    }
+    .search-icon::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      position: absolute;
+      top: 3px;
+      left: 2px;
+      border: 3px solid #f5fcff;
+      border-radius: 50%;
+      background: #0789ce;
+      box-shadow: inset 0 0 2px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.38);
+    }
+    .search-icon::after {
+      content: "";
+      position: absolute;
+      width: 13px;
+      height: 4px;
+      left: 16px;
+      top: 21px;
+      transform: rotate(47deg);
+      transform-origin: left center;
+      border-radius: 2px;
+      background: #f1f1f1;
+      box-shadow: 0 1px 2px rgba(0,0,0,.38);
+    }
+
+    .layout {
+      min-width: 950px;
+      min-height: calc(100vh - 63px);
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+    }
+
+    .nav {
+      padding-top: 92px;
+      background: linear-gradient(90deg, #fff 0%, #fbfbfb 70%, #f2f4f5 100%);
+      border-right: 1px solid #e3e5e6;
+      color: #001d38;
+      position: relative;
+      min-height: calc(100vh - 63px);
+      z-index: 1;
+    }
+
+    .nav-inner { width: 161px; margin: 0 0 0 7px; }
+    .nav h2 {
+      font-size: 15px;
+      line-height: 16px;
+      margin: 3px 0 7px;
+      color: #151515;
+      font-weight: normal;
+    }
+    .nav h3 {
+      margin: 20px 0 7px;
+      font-size: 14px;
+      color: #2d5e00;
+      font-weight: bold;
+    }
+    .nav ul { margin: 0; padding: 0; list-style: none; }
+    .nav li { margin: 0 0 4px; line-height: 13px; }
+    .nav a { color: #005eab; text-decoration: none; }
+    .nav a:hover { text-decoration: underline; }
+    .nav-rule { margin-top: 17px; border-top: 1px solid #d8d8d8; }
+
+    .content {
+      padding: 28px 28px 40px;
+      min-height: calc(100vh - 63px);
+      background: linear-gradient(90deg, rgba(242,247,249,.75) 0, rgba(250,251,251,.95) 26%, #f7f9fa 60%, #f3f5f5 100%);
+      border-top: 1px solid rgba(255,255,255,.7);
+    }
+
+    .page-inner {
+      width: min(100%, 835px);
+      margin: 0;
+    }
+
+    h1 {
+      margin: 0 0 11px;
+      color: #3e93bd;
+      font-size: 24px;
+      line-height: 30px;
+      font-weight: bold;
+      text-shadow: 1px 1px 1px rgba(0,0,0,.28);
+    }
+
+    .notice {
+      color: #008000;
+      font-weight: bold;
+      font-size: 12px;
+      margin-bottom: 33px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      column-gap: 28px;
+      row-gap: 11px;
+      align-items: center;
+      width: 650px;
+      margin-left: 6px;
+    }
+
+    .form-head {
+      color: #14314c;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: .2px;
+      margin-bottom: 2px;
+    }
+    .form-row { display: contents; }
+    .select-cell {
+      display: flex;
+      align-items: center;
+      min-height: 22px;
+    }
+    input[type="radio"] {
+      width: 13px;
+      height: 13px;
+      margin: 0 40px 0 4px;
+      accent-color: #0077ff;
+      flex: 0 0 auto;
+    }
+    input[type="text"], select {
+      height: 21px;
+      border: 1px solid #939393;
+      border-radius: 2px;
+      background: #fff;
+      color: #111;
+      font: 12px Arial, Helvetica, sans-serif;
+      padding: 1px 3px;
+      box-shadow: inset 0 1px 1px rgba(0,0,0,.06);
+    }
+    .unique-input { width: 80px; }
+    select { width: 125px; }
+    .transaction {
+      min-height: 22px;
+      color: #12324b;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+    }
+    .dependent-input { width: 80px; margin-left: 7px; }
+
+    .form-buttons {
+      margin: 28px 0 0 0;
+      display: flex;
+      gap: 17px;
+    }
+    button {
+      height: 22px;
+      min-width: 59px;
+      padding: 1px 7px 2px;
+      border: 1px solid #8b8b8b;
+      border-radius: 2px;
+      color: #111;
+      background: linear-gradient(#fff, #ececec);
+      font: 13px Arial, Helvetica, sans-serif;
+      cursor: pointer;
+      box-shadow: 0 1px 1px rgba(0,0,0,.06);
+    }
+    button:hover { background: linear-gradient(#fff, #e2e2e2); }
+    button:active { box-shadow: inset 0 1px 2px rgba(0,0,0,.18); }
+
+    .message {
+      min-height: 17px;
+      margin: 13px 0 0 2px;
+      font-weight: bold;
+      color: #7f2b00;
+      font-size: 12px;
+    }
+    .message.success { color: #008000; }
+
+    .schedule {
+      width: min(100%, 805px);
+      margin-top: 72px;
+    }
+    .schedule h2 {
+      margin: 0 0 15px 2px;
+      color: #17324b;
+      font-size: 15px;
+      line-height: 17px;
+      font-weight: bold;
+    }
+    .schedule table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      color: #12324b;
+      font-size: 12px;
+    }
+    .schedule th {
+      text-align: left;
+      font-weight: bold;
+      padding: 1px 3px 12px 2px;
+      white-space: nowrap;
+    }
+    .schedule td {
+      padding: 6px 3px 7px 2px;
+      vertical-align: top;
+      line-height: 15px;
+      word-wrap: break-word;
+    }
+    .schedule .unique { width: 61px; }
+    .schedule .course { width: 84px; }
+    .schedule .status { width: 55px; }
+    .schedule .meeting { width: 230px; }
+    .schedule .title { width: auto; }
+    .empty-row td {
+      padding: 2px 2px 0;
+      color: #666;
+      font-style: italic;
+    }
+    .remove-link {
+      color: #005eab;
+      cursor: pointer;
+      text-decoration: none;
+      margin-left: 6px;
+      font-size: 11px;
+    }
+    .remove-link:hover { text-decoration: underline; }
+
+    @media (max-width: 700px) {
+      body, .topbar, .layout, .mock-disclaimer { min-width: 0; }
+    .topbar { height: 58px; }
+      .brand-wrap { transform: scale(.83); transform-origin: top left; }
+      .top-actions { right: 9px; gap: 7px; font-size: 11px; }
+      .home-icon { margin-left: 2px; }
+      .search-icon { margin-left: 0; }
+      .layout { grid-template-columns: 1fr; }
+      .nav { display: none; }
+      .content { padding: 30px 15px; }
+      .page-inner { width: 100%; }
+      .form-grid { width: 100%; grid-template-columns: minmax(165px, 210px) 1fr; column-gap: 8px; }
+      .schedule { overflow-x: auto; }
+      .schedule table { min-width: 650px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mock-disclaimer" role="note">
+    <strong>Practice page only.</strong> This is not the real UT registration page and does not submit anything to UT. The actual registration page is <a href="https://utdirect.utexas.edu/registration/chooseSemester.WBX">https://utdirect.utexas.edu/registration/chooseSemester.WBX</a>.
+  </div>
+  <header class="topbar">
+    <div class="brand-wrap" aria-label="The University of Texas at Austin">
+      <div class="brand-small">THE UNIVERSITY OF</div>
+      <div class="brand-main">TEXAS</div>
+      <div class="brand-sub">AT AUSTIN</div>
+    </div>
+    <div class="ut-direct-mark"><span class="horn">⌁</span>UT DIRECT</div>
+    <div class="top-actions" aria-label="Top navigation">
+      <a href="#" onclick="return false;">UT Direct Help</a>
+      <span class="divider"></span>
+      <a href="#" onclick="return false;">Logoff</a>
+      <span class="home-icon" title="Home">⌂</span>
+      <span class="search-icon" title="Search"></span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="nav">
+      <div class="nav-inner">
+        <h2>NAVIGATION MENU</h2>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">Course Schedule</a></li>
+          <li>&nbsp;&nbsp;<a href="#">Fall 2026</a></li>
+          <li><a href="#">My Tuition Bill</a></li>
+          <li><a href="#">RIS page</a></li>
+          <li><a href="#">Optional Fees</a></li>
+          <li><a href="#">See My Waitlists</a></li>
+          <li><a href="#">Cancel My Registration</a></li>
+          <li><a href="#">Registration Directions</a></li>
+          <li><a href="#">Waitlist Directions</a></li>
+          <li><a href="#">Help</a></li>
+        </ul>
+        <h3>Related links</h3>
+        <ul>
+          <li><a href="#">Registrar</a></li>
+          <li><a href="#">Admissions</a></li>
+          <li><a href="#">IDAA</a></li>
+          <li><a href="#">Student Affairs</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+        <div class="nav-rule"></div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="page-inner">
+        <h1>Registration for Fall 2026</h1>
+        <div class="notice">Please select a registration action.</div>
+
+        <form id="registrationForm" autocomplete="off">
+          <div class="form-grid" aria-label="Registration action">
+            <div class="form-head">SELECT&nbsp;&nbsp;UNIQUE NUMBER</div>
+            <div class="form-head">TRANSACTION</div>
+
+            <div class="select-cell">
+              <input type="radio" id="registerAction" name="action" value="register" checked />
+              <input id="uniqueNumber" class="unique-input" type="text" inputmode="numeric" maxlength="5" aria-label="Unique number" autofocus />
+            </div>
+            <label class="transaction" for="registerAction">REGISTER for or ADD</label>
+
+            <div class="select-cell">
+              <input type="radio" id="dropAction" name="action" value="drop" />
+              <select id="dropCourse" aria-label="Course to drop" disabled>
+                <option value="">Select unique to...</option>
+              </select>
+            </div>
+            <label class="transaction" for="dropAction">DROP</label>
+
+            <div class="select-cell">
+              <input type="radio" id="dependentAction" name="action" value="dependent" />
+              <select id="dependentCourse" aria-label="Dependent course" disabled>
+                <option value="">Select unique to...</option>
+              </select>
+            </div>
+            <label class="transaction" for="dependentAction">DROP DEPENDENT UPON successfully ADDING <input id="dependentUnique" class="dependent-input" type="text" inputmode="numeric" maxlength="5" aria-label="Unique number to add" disabled /></label>
+          </div>
+
+          <div class="form-buttons">
+            <button type="submit">Submit</button>
+            <button type="button" id="estimateButton">Estimate Tuition Bill</button>
+          </div>
+          <div id="message" class="message" role="status" aria-live="polite"></div>
+        </form>
+
+        <section class="schedule" aria-labelledby="scheduleTitle">
+          <h2 id="scheduleTitle">You are scheduled for <span id="classCount">0</span> classes and <span id="hourCount">0</span> hours for Fall 2026</h2>
+          <table aria-label="Registered courses">
+            <thead>
+              <tr>
+                <th class="unique">Unique</th>
+                <th class="course">Course</th>
+                <th class="status">Status</th>
+                <th class="meeting">Meeting Information</th>
+                <th class="title">Title</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleBody">
+              <tr class="empty-row"><td colspan="5">No classes currently scheduled.</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // This is an intentionally local, credential-free test mock for browser-extension testing.
+      // The schedule starts empty and remains in this tab only.
+      var courseCatalog = {
+        '58990': { course: 'M 427L', status: '', meeting: 'TTH&nbsp;&nbsp;&nbsp;&nbsp;11:00- 12:30P<br>MW&nbsp;&nbsp;&nbsp;&nbsp;9:00- 11:00', title: 'ADV CALC FOR APPLC II-AP: HON', hours: 3 },
+        '68370': { course: 'UGS 303', status: '', meeting: 'MWF&nbsp;&nbsp;&nbsp;&nbsp;10:00- 11:00', title: 'ORIGINALITY IN ARTS/SCIS: HON', hours: 3 },
+        '50510': { course: 'NSC 110H', status: 'P/F', meeting: 'W&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4:00- 5:00P', title: '1-DEAN SCHOLARS FIRST-YR SMNR', hours: 1 },
+        '62745': { course: 'SDS 313', status: '', meeting: 'TTH&nbsp;&nbsp;&nbsp;&nbsp;2:00- 3:30P', title: 'INTRO TO DATA SCIENCE', hours: 3 },
+        '51930': { course: 'BIO 315H', status: '', meeting: 'MWF&nbsp;&nbsp;&nbsp;&nbsp;11:00- 12:00<br>TH&nbsp;&nbsp;&nbsp;&nbsp;3:30- 4:30P', title: 'ADV INTRO TO GENETICS: HONORS', hours: 4 }
+      };
+
+      var schedule = [];
+      var form = document.getElementById('registrationForm');
+      var uniqueInput = document.getElementById('uniqueNumber');
+      var message = document.getElementById('message');
+      var scheduleBody = document.getElementById('scheduleBody');
+      var classCount = document.getElementById('classCount');
+      var hourCount = document.getElementById('hourCount');
+      var actionInputs = document.querySelectorAll('input[name="action"]');
+      var dropCourse = document.getElementById('dropCourse');
+      var dependentCourse = document.getElementById('dependentCourse');
+      var dependentUnique = document.getElementById('dependentUnique');
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>'"]/g, function (character) {
+          return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character];
+        });
+      }
+
+      function selectedAction() {
+        var checked = document.querySelector('input[name="action"]:checked');
+        return checked ? checked.value : 'register';
+      }
+
+      function updateActionControls() {
+        var action = selectedAction();
+        uniqueInput.disabled = action !== 'register';
+        dropCourse.disabled = action !== 'drop' || schedule.length === 0;
+        dependentCourse.disabled = action !== 'dependent' || schedule.length === 0;
+        dependentUnique.disabled = action !== 'dependent';
+        if (action === 'register') uniqueInput.focus();
+      }
+
+      function refreshSelects() {
+        var selectedDrop = dropCourse.value;
+        var selectedDependent = dependentCourse.value;
+        var options = '<option value="">Select unique to...</option>';
+        schedule.forEach(function (item) {
+          options += '<option value="' + item.unique + '">' + item.unique + '</option>';
+        });
+        dropCourse.innerHTML = options;
+        dependentCourse.innerHTML = options;
+        dropCourse.value = selectedDrop;
+        dependentCourse.value = selectedDependent;
+        updateActionControls();
+      }
+
+      function renderSchedule() {
+        classCount.textContent = schedule.length;
+        var totalHours = schedule.reduce(function (sum, item) { return sum + item.hours; }, 0);
+        hourCount.textContent = totalHours;
+
+        if (schedule.length === 0) {
+          scheduleBody.innerHTML = '<tr class="empty-row"><td colspan="5">No classes currently scheduled.</td></tr>';
+        } else {
+          scheduleBody.innerHTML = schedule.map(function (item) {
+            return '<tr>' +
+              '<td>' + escapeHtml(item.unique) + '</td>' +
+              '<td>' + escapeHtml(item.course) + '</td>' +
+              '<td>' + escapeHtml(item.status || '') + '</td>' +
+              '<td>' + item.meeting + '</td>' +
+              '<td>' + escapeHtml(item.title) + '<a href="#" class="remove-link" data-remove="' + escapeHtml(item.unique) + '">drop</a></td>' +
+              '</tr>';
+          }).join('');
+        }
+        refreshSelects();
+      }
+
+      function showMessage(text, success) {
+        message.textContent = text;
+        message.className = 'message' + (success ? ' success' : '');
+      }
+
+      function normalizeUnique(value) {
+        return String(value || '').replace(/\D/g, '').slice(0, 5);
+      }
+
+      function courseForUnique(unique) {
+        if (courseCatalog[unique]) return Object.assign({ unique: unique }, courseCatalog[unique]);
+        return {
+          unique: unique,
+          course: 'TEST ' + unique.slice(-3),
+          status: '',
+          meeting: 'TBA',
+          title: 'TEST REGISTRATION SECTION',
+          hours: 3
+        };
+      }
+
+      function register(unique) {
+        unique = normalizeUnique(unique);
+        if (unique.length !== 5) {
+          showMessage('Please enter a five-digit unique number.', false);
+          uniqueInput.focus();
+          return;
+        }
+        if (schedule.some(function (item) { return item.unique === unique; })) {
+          showMessage('You are already registered for unique number ' + unique + '.', false);
+          return;
+        }
+        var course = courseForUnique(unique);
+        schedule.push(course);
+        uniqueInput.value = '';
+        renderSchedule();
+        showMessage('Registration successful for unique number ' + unique + '.', true);
+        uniqueInput.focus();
+      }
+
+      function drop(unique) {
+        if (!unique) {
+          showMessage('Please select a unique number to drop.', false);
+          return;
+        }
+        var before = schedule.length;
+        schedule = schedule.filter(function (item) { return item.unique !== unique; });
+        renderSchedule();
+        showMessage(before === schedule.length ? 'The selected class was not found.' : 'Class ' + unique + ' was dropped.', before !== schedule.length);
+      }
+
+      function dropDependentAndRegister(dropUnique, addUnique) {
+        addUnique = normalizeUnique(addUnique);
+        if (!dropUnique) {
+          showMessage('Please select a unique number to drop.', false);
+          return;
+        }
+        if (addUnique.length !== 5) {
+          showMessage('Please enter a five-digit unique number to add.', false);
+          dependentUnique.focus();
+          return;
+        }
+        if (schedule.some(function (item) { return item.unique === addUnique && item.unique !== dropUnique; })) {
+          showMessage('You are already registered for unique number ' + addUnique + '.', false);
+          return;
+        }
+        schedule = schedule.filter(function (item) { return item.unique !== dropUnique; });
+        schedule.push(courseForUnique(addUnique));
+        dependentUnique.value = '';
+        renderSchedule();
+        showMessage('Class ' + dropUnique + ' was dropped and ' + addUnique + ' was added.', true);
+      }
+
+      actionInputs.forEach(function (input) {
+        input.addEventListener('change', updateActionControls);
+      });
+
+      uniqueInput.addEventListener('input', function () {
+        this.value = normalizeUnique(this.value);
+      });
+      dependentUnique.addEventListener('input', function () {
+        this.value = normalizeUnique(this.value);
+      });
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var action = selectedAction();
+        if (action === 'register') register(uniqueInput.value);
+        if (action === 'drop') drop(dropCourse.value);
+        if (action === 'dependent') dropDependentAndRegister(dependentCourse.value, dependentUnique.value);
+      });
+
+      document.getElementById('estimateButton').addEventListener('click', function () {
+        var totalHours = schedule.reduce(function (sum, item) { return sum + item.hours; }, 0);
+        if (totalHours === 0) {
+          showMessage('No tuition estimate is available because no classes are scheduled.', false);
+          return;
+        }
+        showMessage('Test tuition estimate: ' + totalHours + ' registered hours.', true);
+      });
+
+      scheduleBody.addEventListener('click', function (event) {
+        var target = event.target;
+        if (target && target.matches('[data-remove]')) {
+          event.preventDefault();
+          drop(target.getAttribute('data-remove'));
+        }
+      });
+
+      renderSchedule();
+    }());
+  </script>
+</body>
+</html>

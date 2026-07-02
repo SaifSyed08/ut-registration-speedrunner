@@ -1,7 +1,8 @@
 const STORAGE_KEY = "regSpeedRunnerState";
 const DELETED_COURSES_KEY = "regSpeedRunnerDeletedCourses";
 const TUTORIAL_SEEN_KEY = "regSpeedRunnerTutorialSeen";
-const COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#bf5700"];
+const FIRST_RUN_CARD_SEEN_KEY = "regSpeedRunnerFirstRunCardSeen";
+const COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#64748b", "#bf5700"];
 
 const defaultState = {
   enabled: true,
@@ -16,6 +17,7 @@ const defaultState = {
 
 let state = structuredClone(defaultState);
 let tutorialSeen = true;
+let firstRunCardSeen = true;
 let draggedCourseIndex = null;
 
 const $ = (id) => document.getElementById(id);
@@ -63,7 +65,7 @@ function normalizeState(input) {
 }
 
 async function loadState() {
-  const result = await chrome.storage.local.get([STORAGE_KEY, DELETED_COURSES_KEY, TUTORIAL_SEEN_KEY]);
+  const result = await chrome.storage.local.get([STORAGE_KEY, DELETED_COURSES_KEY, TUTORIAL_SEEN_KEY, FIRST_RUN_CARD_SEEN_KEY]);
   const storedState = result[STORAGE_KEY];
   state = normalizeState(storedState || structuredClone(defaultState));
   const separatelyStoredDeletedCourses = Array.isArray(result[DELETED_COURSES_KEY])
@@ -75,6 +77,7 @@ async function loadState() {
     await chrome.storage.local.set({ [DELETED_COURSES_KEY]: state.deletedCourses });
   }
   tutorialSeen = result[TUTORIAL_SEEN_KEY] !== false;
+  firstRunCardSeen = result[FIRST_RUN_CARD_SEEN_KEY] !== false;
   await chrome.storage.local.set({ [STORAGE_KEY]: state });
   render();
 }
@@ -152,7 +155,7 @@ function renderCourses() {
     card.style.setProperty("--course-color", course.color);
     card.innerHTML = `
       <div class="course-main">
-        <div class="course-grip" draggable="true" title="Drag to reorder" aria-label="Drag to reorder"><span></span><span></span><span></span><span></span></div>
+        <div class="course-grip" draggable="true" title="Drag this card to reorder classes" aria-label="Drag to reorder"><span></span><span></span><span></span><span></span></div>
         <div class="course-fields">
           <div class="course-top">
             <input class="course-name" value="${escapeHtml(course.name)}" aria-label="Course name" />
@@ -163,7 +166,7 @@ function renderCourses() {
             <button class="badge" data-action="set-current" title="Make this the current class">${index === state.currentCol ? "Active" : "Use"}</button>
             <button class="icon-btn" data-action="delete" title="Delete class">&times;</button>
           </div>
-          <textarea aria-label="Unique numbers" spellcheck="false">${escapeHtml(course.uniques.join("\n"))}</textarea>
+          <textarea aria-label="Unique numbers" title="List Unique Numbers from highest priority to backup choices" spellcheck="false">${escapeHtml(course.uniques.join("\n"))}</textarea>
           <div class="card-note">
             <span>${course.uniques.length} unique${course.uniques.length === 1 ? "" : "s"}</span>
             <span>${course.uniques.slice(course.row + 1).length} backups left</span>
@@ -179,12 +182,15 @@ function render() {
   renderStatus();
   renderCourses();
   $("tutorialCard").hidden = tutorialSeen;
-  $("restoreCoursesBtn").disabled = state.deletedCourses.length === 0;
-  $("restoreCoursesBtn").title = state.deletedCourses.length
-    ? `Restore ${state.deletedCourses.length} deleted class${state.deletedCourses.length === 1 ? "" : "es"}`
-    : "No deleted classes to restore";
+  $("sampleScheduleCallout").hidden = firstRunCardSeen;
 }
 
+
+async function setFirstRunCardSeen(seen) {
+  firstRunCardSeen = seen;
+  await chrome.storage.local.set({ [FIRST_RUN_CARD_SEEN_KEY]: seen });
+  render();
+}
 
 async function setTutorialSeen(seen) {
   tutorialSeen = seen;
@@ -310,22 +316,11 @@ $("resetBtn").addEventListener("click", async () => {
   render();
 });
 
-$("restoreCoursesBtn").addEventListener("click", async () => {
-  state = collectFromDom();
-  if (!state.deletedCourses.length) return;
-  state.courses.push(...state.deletedCourses);
-  state.deletedCourses = [];
-  state = normalizeState(state);
-  await chrome.storage.local.set({
-    [STORAGE_KEY]: state,
-    [DELETED_COURSES_KEY]: []
-  });
-  render();
-});
 
 $("saveBtn").addEventListener("click", () => saveState(true));
 enabledToggle.addEventListener("change", () => saveState(false));
 $("dismissTutorialBtn").addEventListener("click", () => setTutorialSeen(true));
+$("dismissSampleCalloutBtn").addEventListener("click", () => setFirstRunCardSeen(true));
 $("helpBtn").addEventListener("click", () => setTutorialSeen(false));
 
 

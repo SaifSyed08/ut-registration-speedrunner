@@ -12,13 +12,19 @@
         <div>
           <p class="eyebrow">UT Registration</p>
           <h1>SpeedRunner</h1>
-          <p class="subtitle">Column-based unique numbers with fast backup hotkeys.</p>
+          <p class="subtitle">Works only on https://utdirect.utexas.edu, https://registrar.utexas.edu, and the practice mock.</p>
         </div>
-        <label class="switch" title="Turn hotkeys on/off">
+        <label class="switch" title="Your extension is active on supported registration pages when this is on.">
           <input id="enabledToggle" type="checkbox" />
           <span class="slider"></span>
         </label>
       </section>
+
+      <p class="reload-alert"><strong>Reload any open registration page after installing or updating the extension.</strong></p>
+      <nav class="quick-links" aria-label="Registration links">
+        <a href="https://utdirect.utexas.edu/registration/chooseSemester.WBX" target="_blank" rel="noreferrer">Actual registration</a>
+        <a href="https://saifsyed08.github.io/ut-registration-speedrunner/index.html" target="_blank" rel="noreferrer">Practice mock</a>
+      </nav>
 
       <section id="tutorialCard" class="tutorial-card" aria-label="Quick start tutorial" hidden>
         <div class="tutorial-top">
@@ -32,7 +38,7 @@
           <li>Add one class card per course.</li>
           <li>Put unique numbers in priority order, one per line.</li>
           <li>Click <strong>Use</strong> on the class you want first.</li>
-          <li>On the registration page, click the input box and use the hotkeys.</li>
+          <li>Open the real or mock registration page, reload it, click the input box, and use the hotkeys.</li>
         </ol>
         <div class="tutorial-hotkeys">
           <span><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> paste</span>
@@ -44,15 +50,21 @@
       <section class="toolbar">
         <button id="addCourseBtn" class="primary">+ Add class</button>
         <button id="sampleBtn">Load sample</button>
-        <button id="resetBtn">Reset positions</button>
-        <button id="restoreCoursesBtn" class="restore-btn" title="Restore all deleted classes" aria-label="Restore all deleted classes">&#x21bb;</button>
+        <button id="resetBtn" title="Reload lists to first uniques">Reset positions</button>
       </section>
 
+
+      <section id="sampleScheduleCallout" class="sample-callout" aria-label="Sample schedule note" hidden>
+        <button id="dismissSampleCalloutBtn" class="sample-close" type="button" aria-label="Dismiss sample schedule note">&times;</button>
+        <strong>Sample schedule</strong>
+        <p>Hey, this is a sample schedule. Add your classes here as cards, and list Unique Numbers from highest priority to backup choices.</p>
+      </section>
       <section id="courses" class="courses" aria-label="Course unique number columns"></section>
 
       <section class="footer-actions">
         <button id="saveBtn" class="save">Save changes</button>
         <button id="helpBtn">Help</button>
+        <a class="button-link" href="https://github.com/SaifSyed08/ut-registration-speedrunner/issues" target="_blank" rel="noreferrer">Feedback</a>
         <button id="exportBtn">Export</button>
         <button id="importBtn">Import</button>
         <input id="importFile" type="file" accept="application/json" hidden />

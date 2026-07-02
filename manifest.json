@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "UT Registration SpeedRunner",
   "version": "1.2.0",
-  "description": "Hotkey-powered course unique number queues for fast registration backup switching.",
+  "description": "Queue UT registration Unique Numbers with hotkeys on supported registration pages.",
   "permissions": [
     "storage"
   ],
@@ -24,7 +24,8 @@
     {
       "matches": [
         "https://utdirect.utexas.edu/*",
-        "https://registrar.utexas.edu/*"
+        "https://registrar.utexas.edu/*",
+        "https://saifsyed08.github.io/ut-registration-speedrunner/*"
       ],
       "js": [
         "content.js"
@@ -40,6 +41,7 @@
   },
   "host_permissions": [
     "https://utdirect.utexas.edu/*",
-    "https://registrar.utexas.edu/*"
+    "https://registrar.utexas.edu/*",
+    "https://saifsyed08.github.io/ut-registration-speedrunner/*"
   ]
 }

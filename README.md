@@ -1,6 +1,6 @@
 # UT Registration SpeedRunner
 
-A tiny Chrome extension for high-pressure course registration windows.
+A tiny Chrome extension for high-pressure UT course registration windows. It runs only on supported UT registration pages and the project practice mock page.
 
 ## Hotkeys
 
@@ -19,6 +19,11 @@ A tiny Chrome extension for high-pressure course registration windows.
 
 After changing extension files, click **Reload** on `chrome://extensions` and refresh any registration tabs that were already open.
 
+## Registration links
+
+- Actual registration: https://utdirect.utexas.edu/registration/chooseSemester.WBX
+- Practice mock page: https://saifsyed08.github.io/ut-registration-speedrunner/index.html
+
 ## How to use during registration
 
 1. Click the unique-number input field on the registration page.
@@ -31,4 +36,4 @@ After changing extension files, click **Reload** on `chrome://extensions` and re
 
 - The extension does not submit anything for you. It only fills the currently focused input or copies the number if no input is focused.
 - Shortcuts are handled by the script injected into the current page, rather than Chrome's global extension-command system.
-- To use `test-registration-page.html`, open the extension's Details page and enable **Allow access to file URLs** first.
+- The practice mock page is not the real registration page and does not submit anything to UT.
