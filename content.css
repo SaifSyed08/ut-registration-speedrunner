@@ -29,6 +29,24 @@
   transform: translateY(0) scale(1);
   pointer-events: auto;
 }
+#reg-speedrunner-hud button {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  width: auto;
+  height: auto;
+  margin: 0;
+  box-shadow: none;
+  appearance: none;
+  font: inherit;
+  line-height: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+#reg-speedrunner-hud button:active {
+  box-shadow: none;
+}
 
 #reg-speedrunner-hud .reg-topbar {
   display: flex;
