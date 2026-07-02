@@ -165,7 +165,7 @@ input:checked + .slider:before { transform: translateX(20px); }
   margin-bottom: 4px;
 }
 .toolbar { margin-top: 6px; }
-.footer-actions { margin-top: 6px; margin-bottom: 5px; flex-wrap: wrap; }
+.footer-actions { margin-top: 6px; margin-bottom: 5px; flex-wrap: wrap; justify-content: flex-start; }
 
 button, .button-link {
   border: 1px solid #e3d9cf;
@@ -191,8 +191,10 @@ button:disabled { cursor: default; opacity: .38; transform: none; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 31px;
-  flex: 1 1 130px;
+  min-height: 30px;
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  white-space: nowrap;
 }
 .courses {
   display: grid;

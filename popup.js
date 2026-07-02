@@ -2,7 +2,7 @@ const STORAGE_KEY = "regSpeedRunnerState";
 const DELETED_COURSES_KEY = "regSpeedRunnerDeletedCourses";
 const TUTORIAL_SEEN_KEY = "regSpeedRunnerTutorialSeen";
 const FIRST_RUN_CARD_SEEN_KEY = "regSpeedRunnerFirstRunCardSeen";
-const COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#64748b", "#bf5700"];
+const COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#eab308", "#84cc16", "#64748b", "#bf5700"];
 const SUPPORTED_PAGE_PATTERNS = [
   /^https:\/\/utdirect\.utexas\.edu\//,
   /^https:\/\/registrar\.utexas\.edu\//,

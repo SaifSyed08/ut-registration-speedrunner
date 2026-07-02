@@ -2,7 +2,7 @@ const STORAGE_KEY = "regSpeedRunnerState";
 const DELETED_COURSES_KEY = "regSpeedRunnerDeletedCourses";
 const OVERLAY_GEOMETRY_KEY = "regSpeedRunnerOverlayGeometry";
 const HUD_ID = "reg-speedrunner-hud";
-const DEFAULT_COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#64748b", "#bf5700"];
+const DEFAULT_COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#eab308", "#84cc16", "#64748b", "#bf5700"];
 
 let state = null;
 let messageTimer = null;
