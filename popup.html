@@ -52,17 +52,35 @@
       <section id="sampleScheduleCallout" class="sample-callout" aria-label="Sample schedule note" hidden>
         <button id="dismissSampleCalloutBtn" class="sample-close" type="button" aria-label="Dismiss sample schedule note">&times;</button>
         <strong>Sample schedule</strong>
-        <p>Hey, this is a sample schedule. Add your classes here as cards, and list Unique Numbers from highest priority to backup choices.</p>
+        <p>Hey new user! This is a sample schedule. Add your classes here as cards, and list Unique Numbers from highest priority to backup choices.</p>
       </section>
       <section id="courses" class="courses" aria-label="Course unique number columns"></section>
 
-      <p id="supportedPageNotice" class="site-alert" hidden>This extension is active only on the UT Austin registration page, Course Schedule, or mock registration page. Use the buttons below to open one.</p>
+      <p id="supportedPageNotice" class="site-alert" hidden>This extension is active only on the UT Registration page, Course Schedule, or Practice Page. Use the buttons below to open one.</p>
 
       <section class="footer-actions">
         <button id="saveBtn" class="save">Save changes</button>
-        <button id="helpBtn">Help</button>
+        <div class="help-menu-wrap">
+          <button id="helpBtn" class="help-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false">Help</button>
+          <div id="helpMenu" class="help-menu" role="menu" hidden>
+            <button id="tutorialMenuBtn" type="button" role="menuitem">Tutorial</button>
+            <a role="menuitem" href="https://chromewebstore.google.com/detail/ppolilopnfojilddopmkenbaojhpfjbl/support?utm_source=item-share-cb" target="_blank" rel="noreferrer">Submit feedback</a>
+          </div>
+        </div>
         <a class="button-link" href="https://saifsyed08.github.io/ut-registration-speedrunner/index.html" target="_blank" rel="noreferrer" data-tooltip="Practice safely. Nothing submits to UT.">Practice Page</a>
         <a class="button-link" href="https://utdirect.utexas.edu/registration/chooseSemester.WBX" target="_blank" rel="noreferrer" data-tooltip="Real UT registration, available during your registration time.">UT Registration</a>
+      </section>
+
+      <section id="reviewPrompt" class="review-prompt" aria-label="Review Registration SpeedRunner" hidden>
+        <div>
+          <strong>Enjoying SpeedRunner?</strong>
+          <p>A quick review helps other UT students find it.</p>
+        </div>
+        <div class="review-actions">
+          <a id="reviewLink" class="review-link" href="https://chromewebstore.google.com/detail/ut-registration-speedrunn/ppolilopnfojilddopmkenbaojhpfjbl/reviews?utm_source=item-share-cb" target="_blank" rel="noreferrer">Write a review</a>
+          <button id="reviewLaterBtn" type="button">Later</button>
+          <button id="dismissReviewBtn" class="review-dismiss" type="button" aria-label="Dismiss review prompt">&times;</button>
+        </div>
       </section>
 
       <p class="tiny-note">

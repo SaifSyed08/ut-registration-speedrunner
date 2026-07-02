@@ -14,7 +14,6 @@
 body {
   margin: 0;
   width: 420px;
-  min-height: 560px;
   color: var(--ink);
   font-family: "Aptos", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   background:
@@ -102,7 +101,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 }
 .site-alert {
   margin: 7px 2px 0;
-  color: #b42318;
+  color: var(--burnt);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.28;
@@ -226,6 +225,111 @@ button:disabled { cursor: default; opacity: .38; transform: none; }
 .button-link[data-tooltip]:focus-visible::after {
   opacity: 1;
   transform: translateY(0);
+}
+.help-menu-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+.help-menu-btn::after {
+  content: "";
+  display: inline-block;
+  margin-left: 6px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  vertical-align: middle;
+}
+.help-menu {
+  position: absolute;
+  z-index: 30;
+  right: 0;
+  bottom: calc(100% + 6px);
+  display: grid;
+  min-width: 148px;
+  padding: 5px;
+  border: 1px solid #e3d9cf;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 22px rgba(48, 30, 12, 0.14);
+}
+.help-menu[hidden] { display: none; }
+.help-menu button,
+.help-menu a {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 6px;
+  color: #2c2520;
+  background: transparent;
+  font: 600 12px "Aptos", "Segoe UI", system-ui, sans-serif;
+  text-align: left;
+  white-space: nowrap;
+}
+.help-menu button:hover,
+.help-menu a:hover,
+.help-menu button:focus-visible,
+.help-menu a:focus-visible {
+  background: #fff4e8;
+  outline: none;
+  transform: none;
+}
+.review-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 9px 10px;
+  border: 1px solid rgba(191, 87, 0, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+}
+.review-prompt[hidden] { display: none; }
+.review-prompt strong {
+  display: block;
+  font-size: 12px;
+}
+.review-prompt p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+}
+.review-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+.review-link,
+.review-actions button {
+  min-height: 28px;
+  padding: 6px 8px;
+  border: 1px solid #e3d9cf;
+  border-radius: 7px;
+  color: #2c2520;
+  background: rgba(255, 255, 255, 0.82);
+  font: 700 11px "Aptos", "Segoe UI", system-ui, sans-serif;
+  white-space: nowrap;
+}
+.review-link {
+  color: #fff;
+  border-color: #a94f08;
+  background: var(--burnt);
+}
+.review-link:hover,
+.review-link:focus-visible {
+  color: #fff;
+  background: #9f4700;
+  outline: none;
+}
+.review-dismiss {
+  width: 28px;
+  padding: 0;
+  color: #8b1e0b;
+  background: #ffe7dc;
 }
 .courses {
   display: grid;

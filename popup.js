@@ -2,6 +2,9 @@ const STORAGE_KEY = "regSpeedRunnerState";
 const DELETED_COURSES_KEY = "regSpeedRunnerDeletedCourses";
 const TUTORIAL_SEEN_KEY = "regSpeedRunnerTutorialSeen";
 const FIRST_RUN_CARD_SEEN_KEY = "regSpeedRunnerFirstRunCardSeen";
+const REVIEW_PROMPT_KEY = "regSpeedRunnerReviewPrompt";
+const REVIEW_URL = "https://chromewebstore.google.com/detail/ut-registration-speedrunn/ppolilopnfojilddopmkenbaojhpfjbl/reviews?utm_source=item-share-cb";
+const FEEDBACK_URL = "https://chromewebstore.google.com/detail/ppolilopnfojilddopmkenbaojhpfjbl/support?utm_source=item-share-cb";
 const COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#eab308", "#84cc16", "#64748b", "#bf5700"];
 
 const defaultState = {
@@ -19,11 +22,43 @@ let state = structuredClone(defaultState);
 let tutorialSeen = true;
 let firstRunCardSeen = true;
 let draggedCourseIndex = null;
+let reviewPromptState = { openCount: 0, dismissed: false, clicked: false, snoozedUntil: 0 };
 
 const $ = (id) => document.getElementById(id);
 const coursesEl = $("courses");
 const enabledToggle = $("enabledToggle");
+const helpBtn = $("helpBtn");
+const helpMenu = $("helpMenu");
 
+function normalizeReviewPromptState(input) {
+  const source = input && typeof input === "object" ? input : {};
+  return {
+    openCount: Number.isInteger(source.openCount) ? source.openCount : 0,
+    dismissed: Boolean(source.dismissed),
+    clicked: Boolean(source.clicked),
+    snoozedUntil: Number.isFinite(source.snoozedUntil) ? source.snoozedUntil : 0
+  };
+}
+
+function shouldShowReviewPrompt() {
+  return reviewPromptState.openCount >= 5
+    && !reviewPromptState.dismissed
+    && !reviewPromptState.clicked
+    && Date.now() >= reviewPromptState.snoozedUntil
+    && tutorialSeen
+    && firstRunCardSeen;
+}
+
+async function saveReviewPromptState(patch) {
+  reviewPromptState = normalizeReviewPromptState({ ...reviewPromptState, ...patch });
+  await chrome.storage.local.set({ [REVIEW_PROMPT_KEY]: reviewPromptState });
+  render();
+}
+
+function setHelpMenuOpen(open) {
+  helpMenu.hidden = !open;
+  helpBtn.setAttribute("aria-expanded", String(open));
+}
 function normalizeColor(value, fallback = "#bf5700") {
   const color = String(value || "").toLowerCase();
   return COURSE_COLORS.includes(color) ? color : fallback;
@@ -65,7 +100,7 @@ function normalizeState(input) {
 }
 
 async function loadState() {
-  const result = await chrome.storage.local.get([STORAGE_KEY, DELETED_COURSES_KEY, TUTORIAL_SEEN_KEY, FIRST_RUN_CARD_SEEN_KEY]);
+  const result = await chrome.storage.local.get([STORAGE_KEY, DELETED_COURSES_KEY, TUTORIAL_SEEN_KEY, FIRST_RUN_CARD_SEEN_KEY, REVIEW_PROMPT_KEY]);
   const storedState = result[STORAGE_KEY];
   state = normalizeState(storedState || structuredClone(defaultState));
   const separatelyStoredDeletedCourses = Array.isArray(result[DELETED_COURSES_KEY])
@@ -78,7 +113,12 @@ async function loadState() {
   }
   tutorialSeen = result[TUTORIAL_SEEN_KEY] !== false;
   firstRunCardSeen = result[FIRST_RUN_CARD_SEEN_KEY] !== false;
-  await chrome.storage.local.set({ [STORAGE_KEY]: state });
+  reviewPromptState = normalizeReviewPromptState(result[REVIEW_PROMPT_KEY]);
+  reviewPromptState.openCount += 1;
+  await chrome.storage.local.set({
+    [STORAGE_KEY]: state,
+    [REVIEW_PROMPT_KEY]: reviewPromptState
+  });
   render();
 }
 
@@ -184,6 +224,7 @@ function render() {
   $("tutorialCard").hidden = tutorialSeen;
   $("reloadAlert").hidden = firstRunCardSeen;
   $("sampleScheduleCallout").hidden = firstRunCardSeen;
+  $("reviewPrompt").hidden = !shouldShowReviewPrompt();
 }
 
 
@@ -341,12 +382,29 @@ $("saveBtn").addEventListener("click", () => saveState(true));
 enabledToggle.addEventListener("change", () => saveState(false));
 $("dismissTutorialBtn").addEventListener("click", () => setTutorialSeen(true));
 $("dismissSampleCalloutBtn").addEventListener("click", () => setFirstRunCardSeen(true));
-$("helpBtn").addEventListener("click", () => setTutorialSeen(false));
+helpBtn.addEventListener("click", () => setHelpMenuOpen(helpMenu.hidden));
+$("tutorialMenuBtn").addEventListener("click", () => {
+  setHelpMenuOpen(false);
+  setTutorialSeen(false);
+});
+$("reviewLink").href = REVIEW_URL;
+$("helpMenu").querySelector("a").href = FEEDBACK_URL;
+$("reviewLink").addEventListener("click", () => {
+  reviewPromptState = normalizeReviewPromptState({ ...reviewPromptState, clicked: true, dismissed: true });
+  chrome.storage.local.set({ [REVIEW_PROMPT_KEY]: reviewPromptState });
+});
+$("reviewLaterBtn").addEventListener("click", () => saveReviewPromptState({ snoozedUntil: Date.now() + 7 * 24 * 60 * 60 * 1000 }));
+$("dismissReviewBtn").addEventListener("click", () => saveReviewPromptState({ dismissed: true }));
 
 
 document.addEventListener("click", (event) => {
+  if (!event.target.closest(".help-menu-wrap")) setHelpMenuOpen(false);
   if (event.target.closest(".course-palette, .color-menu-btn")) return;
   document.querySelectorAll(".course-palette").forEach((palette) => { palette.hidden = true; });
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") setHelpMenuOpen(false);
 });
 
 // Autosave after edits so the HUD updates without making you remember.
