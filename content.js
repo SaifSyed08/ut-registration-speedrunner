@@ -2,13 +2,16 @@ const STORAGE_KEY = "regSpeedRunnerState";
 const DELETED_COURSES_KEY = "regSpeedRunnerDeletedCourses";
 const OVERLAY_GEOMETRY_KEY = "regSpeedRunnerOverlayGeometry";
 const HUD_ID = "reg-speedrunner-hud";
-const DEFAULT_COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#eab308", "#84cc16", "#64748b", "#bf5700"];
+const DEFAULT_COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#eab308", "#84cc16", "#64748b", "#bf5700", "#14b8a6", "#f97316"];
+const AUTO_MODES = new Set(["off", "paste-submit", "full"]);
 
 let state = null;
 let messageTimer = null;
 let pasteInProgress = false;
 let overlayGeometryLoaded = false;
 let resizeSaveTimer = null;
+let lastFocusedEditable = null;
+let fullAutoRun = null;
 const storage = (() => {
   const chromeStorage = globalThis.chrome?.storage?.local;
   if (chromeStorage) {
@@ -54,10 +57,42 @@ function normalizeColor(value, fallback = "#bf5700") {
   return /^#[0-9a-f]{6}$/i.test(String(value || "")) ? String(value).toLowerCase() : fallback;
 }
 
+function normalizeAutoMode(value, legacyAutoSubmit = false) {
+  const mode = String(value || "");
+  if (AUTO_MODES.has(mode)) return mode;
+  return legacyAutoSubmit ? "paste-submit" : "off";
+}
+
+function hexToRgb(value) {
+  const color = normalizeColor(value);
+  const hex = color.slice(1);
+  return {
+    r: parseInt(hex.slice(0, 2), 16),
+    g: parseInt(hex.slice(2, 4), 16),
+    b: parseInt(hex.slice(4, 6), 16)
+  };
+}
+
+function applyHudCourseColor(hud, course) {
+  const enabled = Boolean(state?.overlayCourseColors && course?.color);
+  hud.classList.toggle("reg-course-color-mode", enabled);
+  if (!enabled) {
+    hud.style.removeProperty("--reg-course-color");
+    hud.style.removeProperty("--reg-course-rgb");
+    return;
+  }
+
+  const color = normalizeColor(course.color);
+  const rgb = hexToRgb(color);
+  hud.style.setProperty("--reg-course-color", color);
+  hud.style.setProperty("--reg-course-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+}
+
 function normalizeState(input) {
-  const next = input && typeof input === "object" ? input : { enabled: true, autoSubmit: false, currentCol: 0, courses: [] };
+  const next = input && typeof input === "object" ? input : { enabled: true, currentCol: 0, courses: [] };
   next.enabled = Boolean(next.enabled);
-  next.autoSubmit = Boolean(next.autoSubmit);
+  next.autoMode = normalizeAutoMode(next.autoMode, next.autoSubmit);
+  next.overlayCourseColors = Boolean(next.overlayCourseColors);
   next.currentCol = Number.isInteger(next.currentCol) ? next.currentCol : 0;
   next.courses = Array.isArray(next.courses) ? next.courses : [];
   next.deletedCourses = Array.isArray(next.deletedCourses) ? next.deletedCourses : [];
@@ -90,6 +125,14 @@ function normalizeState(input) {
   return next;
 }
 
+function isTopFrame() {
+  try {
+    return window.top === window;
+  } catch (_) {
+    return true;
+  }
+}
+
 function loadState() {
   storage.get([STORAGE_KEY, DELETED_COURSES_KEY, OVERLAY_GEOMETRY_KEY], (result) => {
     state = normalizeState(result[STORAGE_KEY]);
@@ -99,10 +142,12 @@ function loadState() {
         deletedCourses: result[DELETED_COURSES_KEY]
       }).deletedCourses;
     }
-    renderHud("Ready");
-    applyOverlayGeometry(result[OVERLAY_GEOMETRY_KEY]);
-    updateOverlayCompactClasses(createHud());
-    overlayGeometryLoaded = true;
+    if (isTopFrame()) {
+      renderHud("Ready");
+      applyOverlayGeometry(result[OVERLAY_GEOMETRY_KEY]);
+      updateOverlayCompactClasses(createHud());
+      overlayGeometryLoaded = true;
+    }
   });
 }
 
@@ -138,7 +183,7 @@ function createHud() {
         <span class="reg-subtitle">Drag to move overlay</span>
       </div>
       <div class="reg-top-actions">
-        <span class="reg-pill reg-pill-auto" data-reg="auto-pill" title="Auto-submit will click Submit for you after every paste. Double-check your unique numbers." hidden>AUTO-SUBMIT</span>
+        <span class="reg-pill reg-pill-auto" data-reg="auto-pill" title="Auto mode is enabled" hidden>AUTO</span>
         <span class="reg-pill" title="Your extension is active!">ON</span>
         <button class="reg-restore-btn" data-reg-action="rewind-backups" type="button" title="Reload lists to first uniques" aria-label="Reload lists to first uniques">&#x21bb;</button>
       </div>
@@ -152,7 +197,7 @@ function createHud() {
           <span class="reg-other-courses" data-reg="other-courses" aria-label="Other classes"></span>
         </div>
         <div class="reg-unique-row">
-          <span class="reg-big-unique" data-reg="unique">—</span>
+          <button class="reg-big-unique reg-current-unique" data-reg-action="copy-current" data-reg="unique" type="button" title="Copy current unique">—</button>
           <span class="reg-backups-left" data-reg="backups" aria-label="Backups left"></span>
         </div>
       </div>
@@ -161,6 +206,7 @@ function createHud() {
         <span><span class="reg-key">Ctrl+Shift+S</span> paste + advance</span>
         <span><span class="reg-key">Ctrl+Shift+F</span> next class</span>
       </div>
+      <p class="reg-auto-hint" data-reg="auto-hint" hidden>"Do everything" is active; use <span class="reg-key">Ctrl+Shift+S</span> to begin.</p>
     </div>
   `;
   document.documentElement.appendChild(hud);
@@ -179,18 +225,24 @@ function createHud() {
     }
 
     if (target.dataset.regAction === "backup") {
-      selectBackup(Number(target.dataset.row));
+      selectBackup(Number(target.dataset.row), true);
       return;
     }
 
     if (target.dataset.regAction === "rewind-backups") {
       rewindBackups();
+      return;
+    }
+
+    if (target.dataset.regAction === "copy-current") {
+      void copyUniqueToClipboard(currentUnique(), "current unique");
     }
   });
   return hud;
 }
 
 function renderHud(message) {
+  if (!isTopFrame()) return;
   const hud = createHud();
 
   if (!state?.enabled) {
@@ -200,10 +252,13 @@ function renderHud(message) {
 
   const course = currentCourse();
   const remaining = backupsLeft(course);
+  applyHudCourseColor(hud, course);
 
   hud.querySelector(".reg-message").textContent = message || "Ready";
   const autoPill = hud.querySelector('[data-reg="auto-pill"]');
-  if (autoPill) autoPill.hidden = !state.autoSubmit;
+  autoPill.hidden = state.autoMode === "off";
+  autoPill.textContent = state.autoMode === "full" ? "FULL" : "SUBMIT";
+  hud.querySelector('[data-reg="auto-hint"]').hidden = state.autoMode !== "full";
   hud.querySelector('[data-reg="course"]').textContent = course?.name || "No class loaded";
   const otherCourses = hud.querySelector('[data-reg="other-courses"]');
   otherCourses.replaceChildren();
@@ -256,12 +311,19 @@ function selectCourse(index) {
   flashMessage(`Selected ${currentCourse()?.name || "class"}`);
 }
 
-function selectBackup(row) {
+async function copyUniqueToClipboard(value, label = "unique") {
+  if (!value) return;
+  const copied = await copyFallback(value);
+  flashMessage(copied ? `Copied ${value}` : `Could not copy ${label}.`);
+}
+
+function selectBackup(row, copyAfterSelect = false) {
   const course = currentCourse();
   if (!course || !Number.isInteger(row) || row < 0 || row >= course.uniques.length) return;
   course.row = row;
   saveState();
-  flashMessage(`Selected ${currentUnique()}`);
+  if (copyAfterSelect) void copyUniqueToClipboard(currentUnique(), "backup");
+  else flashMessage(`Selected ${currentUnique()}`);
 }
 
 function rewindBackups() {
@@ -381,34 +443,364 @@ function canWriteToInput(input) {
   return !blocked.has(type) && !input.disabled && !input.readOnly;
 }
 
-function insertIntoFocusedElement(value) {
-  const el = document.activeElement;
+function isVisibleElement(element) {
+  if (!element || element.hidden) return false;
+  const style = getComputedStyle(element);
+  if (style.visibility === "hidden" || style.display === "none") return false;
+  const rect = element.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
+
+function inputSearchText(element) {
+  const escapedId = element.id && typeof CSS !== "undefined" && typeof CSS.escape === "function"
+    ? CSS.escape(element.id)
+    : String(element.id || "").replaceAll('"', '\\"');
+  const label = element.id
+    ? document.querySelector(`label[for="${escapedId}"]`)?.textContent
+    : "";
+  return [
+    element.name,
+    element.id,
+    element.className,
+    element.getAttribute("aria-label"),
+    element.getAttribute("placeholder"),
+    element.getAttribute("title"),
+    label,
+    element.closest("form")?.textContent
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+
+function uniqueInputScore(element) {
+  const text = inputSearchText(element);
+  let score = 0;
+  if (/\b(unique|unique number)\b/.test(text)) score += 30;
+  if (/\b(register|add class|add)\b/.test(text)) score += 8;
+  if (/\b(drop|dependent|search|estimate|tuition)\b/.test(text)) score -= 8;
+  const maxLength = Number(element.getAttribute("maxlength"));
+  if (maxLength === 5 || maxLength === 6) score += 10;
+  if ((element.getAttribute("inputmode") || "").toLowerCase() === "numeric") score += 8;
+  const type = (element.getAttribute("type") || "text").toLowerCase();
+  if (type === "text" || !element.getAttribute("type")) score += 3;
+  if (element.matches?.("#uniqueNumber, .unique-input")) score += 20;
+  if (element.matches?.("#s_unique_add, input[name='s_unique_add']")) score += 30;
+  if (element.matches?.("#s_swap_unique_add, input[name='s_swap_unique_add']")) score -= 20;
+  return score;
+}
+
+function likelyUniqueInput({ aggressive = false } = {}) {
+  const selectors = [
+    'input[name*="unique" i]',
+    'input[id*="unique" i]',
+    'input[aria-label*="unique" i]',
+    'input[placeholder*="unique" i]',
+    'input[name*="course" i]',
+    'input[id*="course" i]',
+    'input[type="text"]',
+    'input:not([type])',
+    "textarea",
+    '[contenteditable="true"]'
+  ];
+
+  const candidates = [...document.querySelectorAll(selectors.join(","))]
+    .filter((element) => isEditable(element) && isVisibleElement(element))
+    .filter((element) => element.isContentEditable || canWriteToInput(element));
+  const uniqueCandidates = [...new Set(candidates)]
+    .map((element) => ({ element, score: uniqueInputScore(element) }))
+    .sort((a, b) => b.score - a.score);
+
+  if (uniqueCandidates.length === 1) return uniqueCandidates[0].element;
+  if (!uniqueCandidates.length) return null;
+  if (aggressive) return uniqueCandidates[0].element;
+  if (uniqueCandidates[0].score >= 22 && uniqueCandidates[0].score >= (uniqueCandidates[1]?.score || 0) + 6) {
+    return uniqueCandidates[0].element;
+  }
+  return null;
+}
+
+function deepActiveElement(root = document) {
+  let active = root.activeElement;
+  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+  return active;
+}
+
+function setNativeValue(element, value) {
+  const ownDescriptor = Object.getOwnPropertyDescriptor(element, "value");
+  const prototype = Object.getPrototypeOf(element);
+  const prototypeDescriptor = Object.getOwnPropertyDescriptor(prototype, "value");
+  const setter = prototypeDescriptor?.set && ownDescriptor?.set !== prototypeDescriptor.set
+    ? prototypeDescriptor.set
+    : ownDescriptor?.set;
+
+  if (setter) setter.call(element, value);
+  else element.value = value;
+}
+
+function notifyValueChanged(element, value) {
+  const inputEvent = typeof InputEvent === "function"
+    ? new InputEvent("input", { bubbles: true, composed: true, inputType: "insertText", data: value })
+    : new Event("input", { bubbles: true, composed: true });
+  element.dispatchEvent(inputEvent);
+  element.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+  element.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, composed: true }));
+}
+
+function isClickableSubmitControl(element) {
+  if (!element || !isVisibleElement(element)) return false;
+  if (element.disabled || element.getAttribute("aria-disabled") === "true") return false;
+  const tag = element.tagName?.toLowerCase();
+  if (tag === "input") {
+    const type = (element.getAttribute("type") || "text").toLowerCase();
+    return ["submit", "button", "image"].includes(type);
+  }
+  return tag === "button" || element.getAttribute("role") === "button";
+}
+
+function submitText(element) {
+  return `${element.textContent || ""} ${element.value || ""} ${element.name || ""} ${element.id || ""}`.toLowerCase();
+}
+
+function findSubmitButton(referenceElement) {
+  const preferredSelectors = [
+    'button[type="submit"]',
+    'input[type="submit"]',
+    'input[name="s_submit"]',
+    'input[type="image"]',
+    'button[name*="submit" i]',
+    'input[name*="submit" i]',
+    'button[id*="submit" i]',
+    'input[id*="submit" i]',
+    'button[name*="register" i]',
+    'input[name*="register" i]',
+    'button[id*="register" i]',
+    'input[id*="register" i]',
+    'button[name*="add" i]',
+    'input[name*="add" i]',
+    'button[id*="add" i]',
+    'input[id*="add" i]'
+  ];
+  const textPattern = /\b(submit|register|add|add class|continue|enter)\b/i;
+  const roots = [referenceElement?.closest?.("form"), document].filter(Boolean);
+
+  for (const root of roots) {
+    const preferred = [...root.querySelectorAll(preferredSelectors.join(","))]
+      .find(isClickableSubmitControl);
+    if (preferred) return preferred;
+
+    const textMatch = [...root.querySelectorAll('button, input[type="button"], a[role="button"]')]
+      .find((element) => isClickableSubmitControl(element) && textPattern.test(submitText(element)));
+    if (textMatch) return textMatch;
+  }
+
+  return null;
+}
+
+function fireSyntheticClick(element) {
+  const options = { bubbles: true, cancelable: true, composed: true, view: window };
+  ["pointerdown", "mousedown", "pointerup", "mouseup", "click"].forEach((type) => {
+    const event = type.startsWith("pointer") && typeof PointerEvent === "function"
+      ? new PointerEvent(type, options)
+      : new MouseEvent(type, options);
+    element.dispatchEvent(event);
+  });
+}
+
+function autoSubmitForm(referenceElement, expectedValue = "") {
+  const button = findSubmitButton(referenceElement);
+  const form = referenceElement?.closest?.("form") || button?.closest?.("form");
+  if (!button && !form) return false;
+
+  setTimeout(() => {
+    if (expectedValue && isEditable(referenceElement) && referenceElement.value !== expectedValue) {
+      setNativeValue(referenceElement, expectedValue);
+      notifyValueChanged(referenceElement, expectedValue);
+    }
+
+    referenceElement?.focus?.({ preventScroll: true });
+    if (form?.requestSubmit) {
+      try {
+        form.requestSubmit(button || undefined);
+        return;
+      } catch (_) {}
+    }
+
+    if (button) {
+      button.focus({ preventScroll: true });
+      try {
+        button.click();
+        return;
+      } catch (_) {}
+      fireSyntheticClick(button);
+      return;
+    }
+
+    if (!form) return;
+    const submitEvent = typeof SubmitEvent === "function"
+      ? new SubmitEvent("submit", { bubbles: true, cancelable: true, submitter: button || null })
+      : new Event("submit", { bubbles: true, cancelable: true });
+    const allowed = form.dispatchEvent(submitEvent);
+    if (allowed && typeof form.submit === "function") form.submit();
+  }, 250);
+  return true;
+}
+
+function scheduleContainers() {
+  const selectors = [
+    "#scheduleBody",
+    ".classScheduleUnique",
+    ".classScheduleHeader",
+    'table[aria-label*="registered" i]',
+    'table[aria-label*="schedule" i]',
+    '[aria-labelledby*="schedule" i]',
+    '[id*="schedule" i]',
+    '[class*="schedule" i]',
+    '[id*="registered" i]',
+    '[class*="registered" i]'
+  ];
+  return [...new Set([...document.querySelectorAll(selectors.join(","))].filter(isVisibleElement))];
+}
+
+function scheduleHasUnique(unique) {
+  if (!unique) return false;
+  const pattern = new RegExp(`\\b${unique}\\b`);
+  const scheduleCells = [
+    ...document.querySelectorAll("#scheduleBody td:first-child, .classScheduleUnique, table[aria-label*='registered' i] tbody td:first-child")
+  ].filter(isVisibleElement);
+  if (scheduleCells.some((cell) => cell.textContent?.trim() === unique)) return true;
+
+  const containers = scheduleContainers();
+  if (containers.some((element) => pattern.test(element.textContent || ""))) return true;
+  return [...document.querySelectorAll("table tbody tr, table tr")]
+    .filter(isVisibleElement)
+    .some((row) => pattern.test(row.textContent || ""));
+}
+
+function pageErrorTextMentions(unique) {
+  const selectors = ['[role="alert"]', ".error", ".errors", ".message", "#message"];
+  const text = [...document.querySelectorAll(selectors.join(","))]
+    .filter(isVisibleElement)
+    .map((element) => element.textContent || "")
+    .join(" ")
+    .toLowerCase();
+  if (!text) return false;
+
+  const failurePattern = /\b(error|failed|failure|invalid|closed|full|waitlist|waitlisted|unsuccessful|not added|not registered|not eligible|problem|unable|denied|restricted|reserved|five-digit)\b/;
+  const uniquePattern = unique ? new RegExp(`\\b${unique}\\b`) : null;
+  return failurePattern.test(text) && (!uniquePattern || uniquePattern.test(text) || /five-digit/.test(text));
+}
+
+function detectRegistrationResult(unique) {
+  if (scheduleHasUnique(unique)) return "success";
+  if (pageErrorTextMentions(unique)) return "failure";
+  return "failure";
+}
+
+function startFullAutoRunIfNeeded() {
+  if (fullAutoRun?.active) return;
+  fullAutoRun = {
+    active: true,
+    completed: new Set(),
+    attempts: 0,
+    maxAttempts: Math.max(1, state?.courses?.reduce((total, course) => total + Math.max(1, course.uniques.length), 0) || 1)
+  };
+}
+
+function stopFullAutoRun(message) {
+  if (fullAutoRun) fullAutoRun.active = false;
+  if (message) flashMessage(message, 2200);
+}
+
+function advanceFullAutoAfterResult(unique, courseIndex, rowIndex) {
+  if (!fullAutoRun?.active) return;
+  const result = detectRegistrationResult(unique);
+  const course = state?.courses?.[courseIndex];
+  if (!course) return stopFullAutoRun("Full auto stopped: class disappeared.");
+
+  if (result === "success") {
+    fullAutoRun.completed.add(courseIndex);
+    course.row = Math.max(course.row, rowIndex + 1);
+    if (fullAutoRun.completed.size >= state.courses.length) {
+      saveState();
+      return stopFullAutoRun("Full auto complete.");
+    }
+
+    let nextIndex = courseIndex;
+    for (let i = 0; i < state.courses.length; i += 1) {
+      nextIndex = (nextIndex + 1) % state.courses.length;
+      if (!fullAutoRun.completed.has(nextIndex) && state.courses[nextIndex]?.uniques?.[state.courses[nextIndex].row]) break;
+    }
+    state.currentCol = nextIndex;
+    saveState();
+    flashMessage(`Registered ${unique}; switched to ${state.courses[nextIndex]?.name || "next class"}.`);
+    setTimeout(() => pasteAndAdvance({ continueFullAuto: true }), 700);
+    return;
+  }
+
+  if (result === "failure") {
+    if (rowIndex < course.uniques.length - 1) {
+      course.row = rowIndex + 1;
+      state.currentCol = courseIndex;
+      saveState();
+      flashMessage(`Unique ${unique} failed; trying backup.`);
+      setTimeout(() => pasteAndAdvance({ continueFullAuto: true }), 700);
+      return;
+    }
+    fullAutoRun.completed.add(courseIndex);
+    saveState();
+    return stopFullAutoRun(`${course.name} failed: no backups left.`);
+  }
+
+  saveState();
+  stopFullAutoRun(`Could not confirm ${unique}; full auto paused.`);
+}
+
+function selectRegisterAction(referenceElement) {
+  const root = referenceElement?.closest?.("form") || document;
+  const candidates = [...root.querySelectorAll('input[type="radio"], input[type="checkbox"]')]
+    .filter((element) => isVisibleElement(element) && !element.disabled);
+  const registerControl = candidates.find((element) => /\b(register|add)\b/i.test(inputSearchText(element) || element.value || ""));
+  if (registerControl && !registerControl.checked) {
+    registerControl.click();
+    registerControl.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+}
+
+function insertIntoFocusedElement(value, { aggressive = false, preferredElement = null } = {}) {
+  const activeElement = deepActiveElement();
+  const candidates = aggressive
+    ? [activeElement, preferredElement || likelyUniqueInput({ aggressive: true }), lastFocusedEditable]
+    : [activeElement, lastFocusedEditable, likelyUniqueInput()];
+  const el = candidates.find((element) => {
+    if (!isEditable(element)) return false;
+    if (element.tagName?.toLowerCase() === "input" || element.tagName?.toLowerCase() === "textarea") {
+      return canWriteToInput(element);
+    }
+    return element.isContentEditable;
+  });
   if (!isEditable(el)) return false;
 
   if (el.tagName?.toLowerCase() === "input" || el.tagName?.toLowerCase() === "textarea") {
     if (!canWriteToInput(el)) return false;
-    el.value = value;
+    el.focus({ preventScroll: true });
+    setNativeValue(el, value);
     const cursor = value.length;
     el.setSelectionRange(cursor, cursor);
-    el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: value }));
-    el.dispatchEvent(new Event("change", { bubbles: true }));
-    return true;
+    notifyValueChanged(el, value);
+    el.scrollIntoView({ block: "nearest", inline: "nearest" });
+    return el;
   }
 
   if (el.isContentEditable) {
+    el.focus({ preventScroll: true });
     document.execCommand("insertText", false, value);
     el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: value }));
-    return true;
+    return el;
   }
 
   return false;
 }
 
 async function copyFallback(value) {
-  try {
-    await navigator.clipboard.writeText(value);
-    return true;
-  } catch (_) {
+  const copyWithTextarea = () => {
     const textarea = document.createElement("textarea");
     textarea.value = value;
     textarea.setAttribute("readonly", "");
@@ -420,42 +812,18 @@ async function copyFallback(value) {
     const ok = document.execCommand("copy");
     textarea.remove();
     return ok;
+  };
+
+  if (copyWithTextarea()) return true;
+  try {
+    await navigator.clipboard.writeText(value);
+    return true;
+  } catch (_) {
+    return false;
   }
 }
 
-const SUBMIT_SELECTOR = 'button[type="submit"], input[type="submit"]';
-
-function findSubmitButton(referenceEl) {
-  const form = referenceEl?.closest?.("form");
-  if (form) {
-    const inForm = form.querySelector(SUBMIT_SELECTOR);
-    if (inForm) return inForm;
-  }
-
-  // Fall back to any submit-typed control on the page, then to a button whose
-  // visible text says "submit" (some registration pages don't set type="submit").
-  const anySubmit = document.querySelector(SUBMIT_SELECTOR);
-  if (anySubmit) return anySubmit;
-
-  const textMatch = [...document.querySelectorAll("button")]
-    .find((btn) => /\bsubmit\b/i.test(btn.textContent || ""));
-  return textMatch || null;
-}
-
-function autoClickSubmit(referenceEl) {
-  const button = findSubmitButton(referenceEl);
-  if (!button || button.disabled) {
-    flashMessage("Auto-submit is on, but no Submit button was found.");
-    return;
-  }
-  // Small delay so any page validation/input listeners triggered by the paste
-  // finish running before the click fires.
-  setTimeout(() => {
-    button.click();
-  }, 150);
-}
-
-async function pasteAndAdvance() {
+async function pasteAndAdvance(options = {}) {
   if (!state?.enabled || pasteInProgress) return;
   pasteInProgress = true;
   const course = currentCourse();
@@ -467,19 +835,38 @@ async function pasteAndAdvance() {
   }
 
   try {
-    const focusedEl = document.activeElement;
-    const inserted = insertIntoFocusedElement(unique);
+    const fullAuto = state.autoMode === "full";
+    const shouldSubmit = state.autoMode === "paste-submit" || fullAuto;
+    if (fullAuto && !options.continueFullAuto) startFullAutoRunIfNeeded();
+    if (fullAuto && fullAutoRun) {
+      fullAutoRun.attempts += 1;
+      if (fullAutoRun.attempts > fullAutoRun.maxAttempts) {
+        pasteInProgress = false;
+        return stopFullAutoRun("Full auto stopped: too many attempts.");
+      }
+    }
+    const courseIndex = state.currentCol;
+    const rowIndex = course.row;
+    const preferredElement = shouldSubmit ? likelyUniqueInput({ aggressive: true }) : null;
+    if (fullAuto && preferredElement) selectRegisterAction(preferredElement);
+    const insertedElement = insertIntoFocusedElement(unique, { aggressive: shouldSubmit, preferredElement });
+    const inserted = Boolean(insertedElement);
     const copied = inserted ? false : await copyFallback(unique);
 
-    const wasLast = course.row === course.uniques.length - 1;
-    course.row += 1;
-    saveState();
-
-    const willAutoSubmit = inserted && state.autoSubmit;
-    if (willAutoSubmit) autoClickSubmit(focusedEl);
-
-    if (inserted) flashMessage(`Pasted ${unique}${willAutoSubmit ? " · auto-submitting…" : wasLast ? " · no backups left" : " · advanced"}`);
-    else if (copied) flashMessage(`Copied ${unique}. Click the field and press Ctrl+V.`);
+    if (inserted) {
+      const wasLast = course.row === course.uniques.length - 1;
+      const autoSubmitted = shouldSubmit ? autoSubmitForm(insertedElement, unique) : false;
+      if (fullAuto) {
+        saveState();
+        flashMessage(`Pasted ${unique}${autoSubmitted ? " · checking result" : " · no submit button found"}`);
+        if (autoSubmitted) setTimeout(() => advanceFullAutoAfterResult(unique, courseIndex, rowIndex), 1250);
+        else stopFullAutoRun("Full auto stopped: no submit button found.");
+      } else {
+        course.row += 1;
+        saveState();
+        flashMessage(`Pasted ${unique}${autoSubmitted ? " · auto-submitting" : shouldSubmit ? " · no submit button found" : wasLast ? " · no backups left" : " · advanced"}`);
+      }
+    } else if (copied) flashMessage(`No input selected. Copied ${unique}; click the UT unique-number box first.`);
     else flashMessage(`Could not paste ${unique}. Click inside the input field first.`);
   } finally {
     pasteInProgress = false;
@@ -518,6 +905,10 @@ window.addEventListener("keydown", (event) => {
   event.preventDefault();
   event.stopImmediatePropagation();
   handleAction(action);
+}, true);
+
+window.addEventListener("focusin", (event) => {
+  if (isEditable(event.target)) lastFocusedEditable = event.target;
 }, true);
 
 storage.onChanged((changes, area) => {

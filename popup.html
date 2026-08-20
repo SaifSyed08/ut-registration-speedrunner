@@ -14,10 +14,12 @@
           <h1>SpeedRunner</h1>
           <p class="subtitle">Register faster. Secure your ideal schedule.</p>
         </div>
-        <label class="switch" title="Your extension is active on supported registration pages when this is on.">
-          <input id="enabledToggle" type="checkbox" />
-          <span class="slider"></span>
-        </label>
+        <div class="top-controls">
+          <label class="switch" title="Your extension is active on supported registration pages when this is on.">
+            <input id="enabledToggle" type="checkbox" />
+            <span class="slider"></span>
+          </label>
+        </div>
       </section>
       <p id="reloadAlert" class="reload-alert" hidden><strong>You may need to reload webpage to see extension. (Ctrl + R)</strong></p>
 
@@ -42,7 +44,7 @@
         </div>
         <ol>
           <li>Add one class card per course.</li>
-          <li>Put unique numbers in priority order, one per line.</li>
+          <li>Put unique numbers in priority order, separated by commas.</li>
           <li>Click <strong>Use</strong> on the class you want first.</li>
           <li>Open the real or mock registration page, reload it, click the input box, and use the hotkeys.</li>
         </ol>
@@ -55,8 +57,24 @@
       </section>
       <section class="toolbar">
         <button id="addCourseBtn" class="primary">+ Add class</button>
-        <button id="sampleBtn">Load sample</button>
-        <button id="resetBtn" title="Reload lists to first uniques">Reset positions</button>
+        <span class="toolbar-spacer"></span>
+        <a id="findClassesLink" class="button-link subtle" href="https://utdirect.utexas.edu/apps/registrar/course_schedule/20269/" target="_blank" rel="noreferrer">Find classes</a>
+        <div class="settings-wrap">
+          <button id="settingsBtn" class="settings-btn subtle" type="button" aria-haspopup="true" aria-expanded="false">Settings</button>
+          <div id="settingsPanel" class="settings-panel" hidden>
+            <label for="autoModeSelect">Auto mode</label>
+            <select id="autoModeSelect">
+              <option value="off">Off</option>
+              <option value="paste-submit">Paste + submit</option>
+              <option value="full">Do everything</option>
+            </select>
+            <label class="settings-check">
+              <input id="overlayCourseColorsToggle" type="checkbox" />
+              Extra color
+            </label>
+            <p>Auto modes may not work on every UT page layout. Verify once before relying on it.</p>
+          </div>
+        </div>
       </section>
 
 
@@ -65,12 +83,15 @@
         <strong>Sample schedule</strong>
         <p>Hey new user! This is a sample schedule. Add your classes here as cards, and list Unique Numbers from highest priority to backup choices.</p>
       </section>
-      <section id="courses" class="courses" aria-label="Course unique number columns"></section>
+      <div id="coursesShell" class="courses-shell">
+        <p class="list-tip">Tip: Click the Unique Number field first, then press <strong>Ctrl+Shift+S</strong>.</p>
+        <section id="courses" class="courses" aria-label="Course unique number columns"></section>
+        <div class="inactive-overlay" hidden>Extension inactive</div>
+      </div>
 
       <p id="supportedPageNotice" class="site-alert" hidden>This extension is active only on the UT Registration page, Course Schedule, or Practice Page. Use the buttons below to open one.</p>
 
       <section class="footer-actions">
-        <button id="saveBtn" class="save">Save changes</button>
         <div class="help-menu-wrap">
           <button id="helpBtn" class="help-menu-btn" type="button" aria-haspopup="menu" aria-expanded="false">Help</button>
           <div id="helpMenu" class="help-menu" role="menu" hidden>
@@ -93,10 +114,6 @@
           <button id="dismissReviewBtn" class="review-dismiss" type="button" aria-label="Dismiss review prompt">&times;</button>
         </div>
       </section>
-
-      <p class="tiny-note">
-        Tip: Click the Unique Number field first, then press <strong>Ctrl+Shift+S</strong>.
-      </p>
     </main>
     <script src="popup.js"></script>
   </body>

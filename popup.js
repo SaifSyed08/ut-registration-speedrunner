@@ -5,11 +5,13 @@ const FIRST_RUN_CARD_SEEN_KEY = "regSpeedRunnerFirstRunCardSeen";
 const REVIEW_PROMPT_KEY = "regSpeedRunnerReviewPrompt";
 const REVIEW_URL = "https://chromewebstore.google.com/detail/ut-registration-speedrunn/ppolilopnfojilddopmkenbaojhpfjbl/reviews?utm_source=item-share-cb";
 const FEEDBACK_URL = "https://chromewebstore.google.com/detail/ppolilopnfojilddopmkenbaojhpfjbl/support?utm_source=item-share-cb";
-const COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#eab308", "#84cc16", "#64748b", "#bf5700"];
+const COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#eab308", "#84cc16", "#64748b", "#bf5700", "#14b8a6", "#f97316"];
+const AUTO_MODES = new Set(["off", "paste-submit", "full"]);
 
 const defaultState = {
   enabled: true,
-  autoSubmit: false,
+  autoMode: "off",
+  overlayCourseColors: false,
   currentCol: 0,
   deletedCourses: [],
   courses: [
@@ -23,12 +25,17 @@ let state = structuredClone(defaultState);
 let tutorialSeen = true;
 let firstRunCardSeen = true;
 let draggedCourseIndex = null;
+let previousAutoMode = "off";
 let reviewPromptState = { openCount: 0, dismissed: false, clicked: false, snoozedUntil: 0 };
 
 const $ = (id) => document.getElementById(id);
 const coursesEl = $("courses");
+const coursesShell = $("coursesShell");
 const enabledToggle = $("enabledToggle");
-const autoSubmitToggle = $("autoSubmitToggle");
+const autoModeSelect = $("autoModeSelect");
+const overlayCourseColorsToggle = $("overlayCourseColorsToggle");
+const settingsBtn = $("settingsBtn");
+const settingsPanel = $("settingsPanel");
 const helpBtn = $("helpBtn");
 const helpMenu = $("helpMenu");
 
@@ -66,17 +73,56 @@ function normalizeColor(value, fallback = "#bf5700") {
   return COURSE_COLORS.includes(color) ? color : fallback;
 }
 
+function normalizeAutoMode(value, legacyAutoSubmit = false) {
+  const mode = String(value || "");
+  if (AUTO_MODES.has(mode)) return mode;
+  return legacyAutoSubmit ? "paste-submit" : "off";
+}
+
+function parseUniqueList(value) {
+  return String(value || "")
+    .split(/[\n,\t\s]+/)
+    .map((u) => u.trim())
+    .filter(Boolean);
+}
+
+function formatUniqueList(value) {
+  return parseUniqueList(value).join(", ");
+}
+
+function courseNameWidth(name) {
+  return Math.max(8, Math.min(String(name || "").length + 3, 26));
+}
+
+function courseScheduleTermCode(date = new Date()) {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const suffix = month <= 5 ? "2" : month <= 7 ? "6" : "9";
+  return `${year}${suffix}`;
+}
+
+function updateFindClassesLink() {
+  const termCode = courseScheduleTermCode();
+  $("findClassesLink").href = `https://utdirect.utexas.edu/apps/registrar/course_schedule/${termCode}/`;
+}
+
+function setSettingsOpen(open) {
+  settingsPanel.hidden = !open;
+  settingsBtn.setAttribute("aria-expanded", String(open));
+}
+
 function normalizeState(input) {
   const next = input && typeof input === "object" ? input : structuredClone(defaultState);
   next.enabled = Boolean(next.enabled);
-  next.autoSubmit = Boolean(next.autoSubmit);
+  next.autoMode = normalizeAutoMode(next.autoMode, next.autoSubmit);
+  next.overlayCourseColors = Boolean(next.overlayCourseColors);
   next.currentCol = Number.isInteger(next.currentCol) ? next.currentCol : 0;
   next.courses = Array.isArray(next.courses) ? next.courses : [];
   next.deletedCourses = Array.isArray(next.deletedCourses) ? next.deletedCourses : [];
   next.courses = next.courses.map((course, index) => {
     const uniques = Array.isArray(course.uniques)
       ? course.uniques.map(String).map((u) => u.trim()).filter(Boolean)
-      : String(course.uniques || "").split(/\s+/).map((u) => u.trim()).filter(Boolean);
+      : parseUniqueList(course.uniques);
     const row = Number.isInteger(course.row) ? course.row : 0;
     return {
       name: String(course.name || "Untitled class").trim() || "Untitled class",
@@ -88,7 +134,7 @@ function normalizeState(input) {
   next.deletedCourses = next.deletedCourses.map((course, index) => {
     const uniques = Array.isArray(course.uniques)
       ? course.uniques.map(String).map((u) => u.trim()).filter(Boolean)
-      : [];
+      : parseUniqueList(course.uniques);
     const row = Number.isInteger(course.row) ? course.row : 0;
     return {
       name: String(course.name || "Untitled class").trim() || "Untitled class",
@@ -125,12 +171,11 @@ async function loadState() {
   render();
 }
 
-async function saveState(showSaved = true) {
+async function saveState(showSaved = false) {
   state = collectFromDom();
   await chrome.storage.local.set({ [STORAGE_KEY]: state });
   if (showSaved) {
     render();
-    flashSave();
   }
 }
 
@@ -142,10 +187,7 @@ function collectFromDom() {
     const name = card.querySelector(".course-name").value.trim() || "Untitled class";
     const selectedColor = card.querySelector(".color-swatch.active")?.dataset.color;
     const color = normalizeColor(selectedColor, previous.color);
-    const uniques = card.querySelector("textarea").value
-      .split(/[\n,\s]+/)
-      .map((u) => u.trim())
-      .filter(Boolean);
+    const uniques = parseUniqueList(card.querySelector(".unique-list").value);
     return {
       name,
       uniques,
@@ -155,7 +197,8 @@ function collectFromDom() {
   });
   return normalizeState({
     enabled: enabledToggle.checked,
-    autoSubmit: autoSubmitToggle.checked,
+    autoMode: autoModeSelect.value,
+    overlayCourseColors: overlayCourseColorsToggle.checked,
     currentCol: state.currentCol,
     deletedCourses: state.deletedCourses,
     courses
@@ -184,13 +227,17 @@ async function persistReorder(fromIndex, toIndex) {
 }
 function renderStatus() {
   enabledToggle.checked = state.enabled;
-  autoSubmitToggle.checked = state.autoSubmit;
+  autoModeSelect.value = state.autoMode;
+  overlayCourseColorsToggle.checked = state.overlayCourseColors;
+  previousAutoMode = state.autoMode;
+  coursesShell.classList.toggle("inactive", !state.enabled);
+  coursesShell.querySelector(".inactive-overlay").hidden = state.enabled;
 }
 
 function renderCourses() {
   coursesEl.innerHTML = "";
   if (state.courses.length === 0) {
-    coursesEl.innerHTML = `<div class="empty">Add a class column, then put one unique number per line.</div>`;
+    coursesEl.innerHTML = `<div class="empty">Add a class column, then paste comma-separated unique numbers.</div>`;
     return;
   }
   state.courses.forEach((course, index) => {
@@ -203,7 +250,7 @@ function renderCourses() {
         <div class="course-grip" draggable="true" title="Drag this card to reorder classes" aria-label="Drag to reorder"><span></span><span></span><span></span><span></span></div>
         <div class="course-fields">
           <div class="course-top">
-            <input class="course-name" value="${escapeHtml(course.name)}" aria-label="Course name" />
+            <input class="course-name" value="${escapeHtml(course.name)}" aria-label="Course name" style="width: ${courseNameWidth(course.name)}ch" />
             <button class="color-menu-btn" type="button" data-action="toggle-palette" style="--swatch-color: ${course.color}" aria-label="Choose class color" title="Choose class color"></button>
             <div class="course-palette" aria-label="Class color" hidden>
               ${COURSE_COLORS.map((color) => `<button class="color-swatch ${color === course.color ? "active" : ""}" type="button" data-color="${color}" data-action="set-color" style="--swatch-color: ${color}" aria-label="Use color ${color}"></button>`).join("")}
@@ -211,7 +258,7 @@ function renderCourses() {
             <button class="badge" data-action="set-current" title="Make this the current class">${index === state.currentCol ? "Active" : "Use"}</button>
             <button class="icon-btn" data-action="delete" title="Delete class">&times;</button>
           </div>
-          <textarea aria-label="Unique numbers" title="List Unique Numbers from highest priority to backup choices" spellcheck="false">${escapeHtml(course.uniques.join("\n"))}</textarea>
+          <textarea class="unique-list" aria-label="Unique numbers" title="Comma-separated Unique Numbers, highest priority first" spellcheck="false">${escapeHtml(course.uniques.join(", "))}</textarea>
           <div class="card-note">
             <span>${course.uniques.length} unique${course.uniques.length === 1 ? "" : "s"}</span>
             <span>${course.uniques.slice(course.row + 1).length} backups left</span>
@@ -271,14 +318,6 @@ async function updateSupportedPageNotice() {
     notice.hidden = false;
   }
 }
-function flashSave() {
-  const btn = $("saveBtn");
-  const old = btn.textContent;
-  btn.textContent = "Saved";
-  setTimeout(() => { btn.textContent = old; }, 850);
-}
-
-
 coursesEl.addEventListener("dragstart", (event) => {
   const grip = event.target.closest(".course-grip");
   if (!grip) return;
@@ -368,35 +407,20 @@ $("addCourseBtn").addEventListener("click", async () => {
   render();
 });
 
-$("sampleBtn").addEventListener("click", async () => {
-  state = structuredClone(defaultState);
-  await chrome.storage.local.set({ [STORAGE_KEY]: state });
-  render();
+enabledToggle.addEventListener("change", async () => {
+  await saveState(false);
+  renderStatus();
 });
-
-$("resetBtn").addEventListener("click", async () => {
-  state = collectFromDom();
-  state.currentCol = 0;
-  state.courses = state.courses.map((course) => ({ ...course, row: 0 }));
-  await chrome.storage.local.set({ [STORAGE_KEY]: state });
-  render();
-});
-
-
-$("saveBtn").addEventListener("click", () => saveState(true));
-enabledToggle.addEventListener("change", () => saveState(false));
-autoSubmitToggle.addEventListener("change", () => {
-  if (autoSubmitToggle.checked) {
-    const confirmed = window.confirm(
-      "Turn on auto-submit?\n\nEvery Ctrl+Shift+S paste will also click the page's Submit button immediately — there's no extra confirmation step. Only enable this once you've double-checked your unique numbers and their order."
-    );
-    if (!confirmed) {
-      autoSubmitToggle.checked = false;
-      return;
-    }
+settingsBtn.addEventListener("click", () => setSettingsOpen(settingsPanel.hidden));
+autoModeSelect.addEventListener("change", async () => {
+  if (autoModeSelect.value !== "off") {
+    const confirmed = confirm("Auto mode may click submit automatically and may not work on every UT page layout. Test it first on the practice page.");
+    if (!confirmed) autoModeSelect.value = previousAutoMode;
   }
-  saveState(false);
+  await saveState(false);
+  previousAutoMode = autoModeSelect.value;
 });
+overlayCourseColorsToggle.addEventListener("change", () => saveState(false));
 $("dismissTutorialBtn").addEventListener("click", () => setTutorialSeen(true));
 $("dismissSampleCalloutBtn").addEventListener("click", () => setFirstRunCardSeen(true));
 helpBtn.addEventListener("click", () => setHelpMenuOpen(helpMenu.hidden));
@@ -416,20 +440,41 @@ $("dismissReviewBtn").addEventListener("click", () => saveReviewPromptState({ di
 
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".help-menu-wrap")) setHelpMenuOpen(false);
+  if (!event.target.closest(".settings-wrap")) setSettingsOpen(false);
   if (event.target.closest(".course-palette, .color-menu-btn")) return;
   document.querySelectorAll(".course-palette").forEach((palette) => { palette.hidden = true; });
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") setHelpMenuOpen(false);
+  if (event.key === "Escape") {
+    setHelpMenuOpen(false);
+    setSettingsOpen(false);
+  }
+});
+
+document.addEventListener("paste", (event) => {
+  const target = event.target.closest?.(".unique-list");
+  if (!target) return;
+  const pasted = event.clipboardData?.getData("text");
+  if (!pasted) return;
+
+  event.preventDefault();
+  const start = target.selectionStart ?? target.value.length;
+  const end = target.selectionEnd ?? start;
+  target.value = formatUniqueList(`${target.value.slice(0, start)} ${pasted} ${target.value.slice(end)}`);
+  target.dispatchEvent(new Event("input", { bubbles: true }));
 });
 
 // Autosave after edits so the HUD updates without making you remember.
 let autosaveTimer;
-document.addEventListener("input", () => {
+document.addEventListener("input", (event) => {
+  if (event.target.classList?.contains("course-name")) {
+    event.target.style.width = `${courseNameWidth(event.target.value)}ch`;
+  }
   clearTimeout(autosaveTimer);
   autosaveTimer = setTimeout(() => saveState(false), 400);
 });
 
 updateSupportedPageNotice();
+updateFindClassesLink();
 loadState();
