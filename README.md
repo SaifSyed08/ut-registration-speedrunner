@@ -1,6 +1,18 @@
 # UT Registration SpeedRunner
 
-A tiny Chrome extension for high-pressure UT course registration windows. It runs only on supported UT registration pages and the project practice mock page.
+A Chrome extension that helps UT students register faster by organizing Unique Numbers, backups, and registration shortcuts in one place.
+
+![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/ppolilopnfojilddopmkenbaojhpfjbl?label=Chrome%20Web%20Store)
+![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/ppolilopnfojilddopmkenbaojhpfjbl)
+![Chrome Web Store Rating](https://img.shields.io/chrome-web-store/rating/ppolilopnfojilddopmkenbaojhpfjbl)
+![License](https://img.shields.io/github/license/SaifSyed08/ut-registration-speedrunner)
+![Last Commit](https://img.shields.io/github/last-commit/SaifSyed08/ut-registration-speedrunner)
+
+[Install from Chrome Web Store](https://chromewebstore.google.com/detail/ut-registration-speedrunn/ppolilopnfojilddopmkenbaojhpfjbl)
+·
+[Try the Practice Page](https://saifsyed08.github.io/ut-registration-speedrunner/)
+·
+[Report an Issue](https://github.com/SaifSyed08/ut-registration-speedrunner/issues)
 
 ## Hotkeys
 
