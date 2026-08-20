@@ -34,7 +34,7 @@ After changing extension files, click **Reload** on `chrome://extensions` and re
 
 ## Auto-submit (optional)
 
-Off by default. In the popup, under **Danger zone**, flip **Auto-submit** on and every **Ctrl+Shift+S** paste will also click the page's **Submit** button for you, right after the number is inserted. This lets you go through a whole queue of classes back-to-back without touching the mouse.
+Off by default. In the popup, flip **Auto-submit** on and every **Ctrl+Shift+S** paste will also click the page's **Submit** button for you, right after the number is inserted. This lets you go through a whole queue of classes back-to-back without touching the mouse.
 
 - Turning it on requires an extra confirmation dialog, since it removes your last manual check before a registration action fires.
 - It only fires after the number was actually typed into a focused input — not when the number was only copied to your clipboard because nothing was focused.
