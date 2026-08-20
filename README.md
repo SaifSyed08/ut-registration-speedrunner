@@ -47,3 +47,7 @@ Off by default. In the popup, flip **Auto-submit** on and every **Ctrl+Shift+S**
 - With auto-submit off (the default), the extension does not submit anything for you. It only fills the currently focused input or copies the number if no input is focused.
 - Shortcuts are handled by the script injected into the current page, rather than Chrome's global extension-command system.
 - The practice mock page is not the real registration page and does not submit anything to UT, so it's a safe place to try auto-submit before using it for real.
+
+## Privacy
+
+UT Registration SpeedRunner stores course names, Unique Numbers, positions, and settings locally in your browser using Chrome storage. The extension does not collect, sell, transmit, or remotely store user data. Clipboard access is only used to write selected Unique Numbers when requested by the user.
