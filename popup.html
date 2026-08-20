@@ -23,17 +23,6 @@
       </section>
       <p id="reloadAlert" class="reload-alert" hidden><strong>You may need to reload webpage to see extension. (Ctrl + R)</strong></p>
 
-      <section class="auto-submit-row" aria-label="Auto-submit setting">
-        <span class="auto-submit-label">
-          Auto-submit
-          <button type="button" class="info-dot" aria-label="What auto-submit does" title="Every Ctrl+Shift+S paste also clicks the page's Submit button immediately, with no confirmation step. Double-check your unique numbers first.">i</button>
-        </span>
-        <label class="switch switch-sm" title="When on, Ctrl+Shift+S also clicks Submit for you.">
-          <input id="autoSubmitToggle" type="checkbox" />
-          <span class="slider"></span>
-        </label>
-      </section>
-
       <section id="tutorialCard" class="tutorial-card" aria-label="Quick start tutorial" hidden>
         <div class="tutorial-top">
           <div>
@@ -57,6 +46,10 @@
       </section>
       <section class="toolbar">
         <button id="addCourseBtn" class="primary">+ Add class</button>
+        <label class="toolbar-check" title="After Ctrl+Shift+S, click Submit automatically.">
+          <input id="autoModeToggle" type="checkbox" />
+          Auto submit
+        </label>
         <span class="toolbar-spacer"></span>
         <a id="findClassesLink" class="button-link subtle" href="https://utdirect.utexas.edu/apps/registrar/course_schedule/20269/" target="_blank" rel="noreferrer">Find classes</a>
         <div class="settings-wrap">
@@ -72,7 +65,6 @@
               <input id="overlayCourseColorsToggle" type="checkbox" />
               Extra color
             </label>
-            <p>Auto modes may not work on every UT page layout. Verify once before relying on it.</p>
           </div>
         </div>
       </section>

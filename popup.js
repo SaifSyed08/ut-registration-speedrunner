@@ -5,7 +5,7 @@ const FIRST_RUN_CARD_SEEN_KEY = "regSpeedRunnerFirstRunCardSeen";
 const REVIEW_PROMPT_KEY = "regSpeedRunnerReviewPrompt";
 const REVIEW_URL = "https://chromewebstore.google.com/detail/ut-registration-speedrunn/ppolilopnfojilddopmkenbaojhpfjbl/reviews?utm_source=item-share-cb";
 const FEEDBACK_URL = "https://chromewebstore.google.com/detail/ppolilopnfojilddopmkenbaojhpfjbl/support?utm_source=item-share-cb";
-const COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#eab308", "#84cc16", "#64748b", "#bf5700", "#14b8a6", "#f97316"];
+const COURSE_COLORS = ["#dc2626", "#bf5700", "#d97706", "#eab308", "#84cc16", "#16a34a", "#14b8a6", "#0891b2", "#2f80ed", "#1d4ed8", "#6366f1", "#a855f7", "#ec4899", "#64748b"];
 const AUTO_MODES = new Set(["off", "paste-submit", "full"]);
 
 const defaultState = {
@@ -32,6 +32,7 @@ const $ = (id) => document.getElementById(id);
 const coursesEl = $("courses");
 const coursesShell = $("coursesShell");
 const enabledToggle = $("enabledToggle");
+const autoModeToggle = $("autoModeToggle");
 const autoModeSelect = $("autoModeSelect");
 const overlayCourseColorsToggle = $("overlayCourseColorsToggle");
 const settingsBtn = $("settingsBtn");
@@ -70,7 +71,7 @@ function setHelpMenuOpen(open) {
 }
 function normalizeColor(value, fallback = "#bf5700") {
   const color = String(value || "").toLowerCase();
-  return COURSE_COLORS.includes(color) ? color : fallback;
+  return /^#[0-9a-f]{6}$/.test(color) ? color : fallback;
 }
 
 function normalizeAutoMode(value, legacyAutoSubmit = false) {
@@ -185,7 +186,7 @@ function collectFromDom() {
     const idx = Number(card.dataset.index);
     const previous = state.courses[idx] || { row: 0 };
     const name = card.querySelector(".course-name").value.trim() || "Untitled class";
-    const selectedColor = card.querySelector(".color-swatch.active")?.dataset.color;
+    const selectedColor = card.dataset.color || card.querySelector(".color-swatch.active")?.dataset.color;
     const color = normalizeColor(selectedColor, previous.color);
     const uniques = parseUniqueList(card.querySelector(".unique-list").value);
     return {
@@ -228,6 +229,7 @@ async function persistReorder(fromIndex, toIndex) {
 function renderStatus() {
   enabledToggle.checked = state.enabled;
   autoModeSelect.value = state.autoMode;
+  autoModeToggle.checked = state.autoMode === "paste-submit";
   overlayCourseColorsToggle.checked = state.overlayCourseColors;
   previousAutoMode = state.autoMode;
   coursesShell.classList.toggle("inactive", !state.enabled);
@@ -244,6 +246,7 @@ function renderCourses() {
     const card = document.createElement("article");
     card.className = `course-card ${index === state.currentCol ? "active" : ""}`;
     card.dataset.index = String(index);
+    card.dataset.color = course.color;
     card.style.setProperty("--course-color", course.color);
     card.innerHTML = `
       <div class="course-main">
@@ -376,6 +379,7 @@ coursesEl.addEventListener("click", async (event) => {
   }
   if (action === "set-color") {
     const color = normalizeColor(button.dataset.color);
+    card.dataset.color = color;
     card.style.setProperty("--course-color", color);
     card.querySelector(".color-menu-btn")?.style.setProperty("--swatch-color", color);
     card.querySelectorAll(".color-swatch").forEach((swatch) => swatch.classList.toggle("active", swatch === button));
@@ -412,9 +416,14 @@ enabledToggle.addEventListener("change", async () => {
   renderStatus();
 });
 settingsBtn.addEventListener("click", () => setSettingsOpen(settingsPanel.hidden));
+autoModeToggle.addEventListener("change", async () => {
+  autoModeSelect.value = autoModeToggle.checked ? "paste-submit" : "off";
+  await saveState(false);
+  previousAutoMode = autoModeSelect.value;
+});
 autoModeSelect.addEventListener("change", async () => {
-  if (autoModeSelect.value !== "off") {
-    const confirmed = confirm("Auto mode may click submit automatically and may not work on every UT page layout. Test it first on the practice page.");
+  if (autoModeSelect.value === "full") {
+    const confirmed = confirm("Do everything may click submit automatically and continue through classes. Test it first on the practice page.");
     if (!confirmed) autoModeSelect.value = previousAutoMode;
   }
   await saveState(false);

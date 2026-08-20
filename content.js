@@ -2,8 +2,12 @@ const STORAGE_KEY = "regSpeedRunnerState";
 const DELETED_COURSES_KEY = "regSpeedRunnerDeletedCourses";
 const OVERLAY_GEOMETRY_KEY = "regSpeedRunnerOverlayGeometry";
 const HUD_ID = "reg-speedrunner-hud";
-const DEFAULT_COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#0891b2", "#4f46e5", "#ec4899", "#eab308", "#84cc16", "#64748b", "#bf5700", "#14b8a6", "#f97316"];
+const DEFAULT_COURSE_COLORS = ["#dc2626", "#bf5700", "#d97706", "#eab308", "#84cc16", "#16a34a", "#14b8a6", "#0891b2", "#2f80ed", "#1d4ed8", "#6366f1", "#a855f7", "#ec4899", "#64748b"];
 const AUTO_MODES = new Set(["off", "paste-submit", "full"]);
+const AUTO_SUBMIT_DELAY_MS = 80;
+const FULL_AUTO_RESULT_POLL_MS = 180;
+const FULL_AUTO_RESULT_TIMEOUT_MS = 1800;
+const FULL_AUTO_NEXT_DELAY_MS = 260;
 
 let state = null;
 let messageTimer = null;
@@ -73,19 +77,30 @@ function hexToRgb(value) {
   };
 }
 
+function darkerTextRgb({ r, g, b }) {
+  return {
+    r: Math.max(0, Math.round(r * 0.68)),
+    g: Math.max(0, Math.round(g * 0.68)),
+    b: Math.max(0, Math.round(b * 0.68))
+  };
+}
+
 function applyHudCourseColor(hud, course) {
   const enabled = Boolean(state?.overlayCourseColors && course?.color);
   hud.classList.toggle("reg-course-color-mode", enabled);
   if (!enabled) {
     hud.style.removeProperty("--reg-course-color");
     hud.style.removeProperty("--reg-course-rgb");
+    hud.style.removeProperty("--reg-course-text-color");
     return;
   }
 
   const color = normalizeColor(course.color);
   const rgb = hexToRgb(color);
+  const textRgb = darkerTextRgb(rgb);
   hud.style.setProperty("--reg-course-color", color);
   hud.style.setProperty("--reg-course-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+  hud.style.setProperty("--reg-course-text-color", `rgb(${textRgb.r}, ${textRgb.g}, ${textRgb.b})`);
 }
 
 function normalizeState(input) {
@@ -639,7 +654,7 @@ function autoSubmitForm(referenceElement, expectedValue = "") {
       : new Event("submit", { bubbles: true, cancelable: true });
     const allowed = form.dispatchEvent(submitEvent);
     if (allowed && typeof form.submit === "function") form.submit();
-  }, 250);
+  }, AUTO_SUBMIT_DELAY_MS);
   return true;
 }
 
@@ -691,7 +706,7 @@ function pageErrorTextMentions(unique) {
 function detectRegistrationResult(unique) {
   if (scheduleHasUnique(unique)) return "success";
   if (pageErrorTextMentions(unique)) return "failure";
-  return "failure";
+  return "pending";
 }
 
 function startFullAutoRunIfNeeded() {
@@ -709,9 +724,19 @@ function stopFullAutoRun(message) {
   if (message) flashMessage(message, 2200);
 }
 
-function advanceFullAutoAfterResult(unique, courseIndex, rowIndex) {
+function waitForFullAutoResult(unique, courseIndex, rowIndex, startedAt = Date.now()) {
   if (!fullAutoRun?.active) return;
   const result = detectRegistrationResult(unique);
+  if (result === "pending" && Date.now() - startedAt < FULL_AUTO_RESULT_TIMEOUT_MS) {
+    setTimeout(() => waitForFullAutoResult(unique, courseIndex, rowIndex, startedAt), FULL_AUTO_RESULT_POLL_MS);
+    return;
+  }
+  advanceFullAutoAfterResult(unique, courseIndex, rowIndex, result);
+}
+
+function advanceFullAutoAfterResult(unique, courseIndex, rowIndex, resultOverride = null) {
+  if (!fullAutoRun?.active) return;
+  const result = resultOverride || detectRegistrationResult(unique);
   const course = state?.courses?.[courseIndex];
   if (!course) return stopFullAutoRun("Full auto stopped: class disappeared.");
 
@@ -731,7 +756,7 @@ function advanceFullAutoAfterResult(unique, courseIndex, rowIndex) {
     state.currentCol = nextIndex;
     saveState();
     flashMessage(`Registered ${unique}; switched to ${state.courses[nextIndex]?.name || "next class"}.`);
-    setTimeout(() => pasteAndAdvance({ continueFullAuto: true }), 700);
+    setTimeout(() => pasteAndAdvance({ continueFullAuto: true }), FULL_AUTO_NEXT_DELAY_MS);
     return;
   }
 
@@ -741,7 +766,7 @@ function advanceFullAutoAfterResult(unique, courseIndex, rowIndex) {
       state.currentCol = courseIndex;
       saveState();
       flashMessage(`Unique ${unique} failed; trying backup.`);
-      setTimeout(() => pasteAndAdvance({ continueFullAuto: true }), 700);
+      setTimeout(() => pasteAndAdvance({ continueFullAuto: true }), FULL_AUTO_NEXT_DELAY_MS);
       return;
     }
     fullAutoRun.completed.add(courseIndex);
@@ -859,7 +884,7 @@ async function pasteAndAdvance(options = {}) {
       if (fullAuto) {
         saveState();
         flashMessage(`Pasted ${unique}${autoSubmitted ? " · checking result" : " · no submit button found"}`);
-        if (autoSubmitted) setTimeout(() => advanceFullAutoAfterResult(unique, courseIndex, rowIndex), 1250);
+        if (autoSubmitted) setTimeout(() => waitForFullAutoResult(unique, courseIndex, rowIndex), FULL_AUTO_RESULT_POLL_MS);
         else stopFullAutoRun("Full auto stopped: no submit button found.");
       } else {
         course.row += 1;
