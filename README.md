@@ -28,12 +28,21 @@ Screenshot of the extension in action: the floating overlay appears on the right
 
 ## How to install
 
-1. Unzip the folder.
-2. Open Chrome and go to `chrome://extensions`.
-3. Turn on **Developer mode** in the top-right.
-4. Click **Load unpacked**.
-5. Select the unzipped `ut-registration-speedrunner` folder.
-6. Click the extension icon, enter your classes and unique numbers, and make sure Registration Mode is on.
+### Chrome Web Store
+
+Install the extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/ut-registration-speedrunn/ppolilopnfojilddopmkenbaojhpfjbl?authuser=0&hl=en).
+
+### Manual install
+
+If the Chrome Web Store link is unavailable, you can install the extension manually from GitHub:
+
+1. Download this repository as a ZIP from GitHub.
+2. Unzip the downloaded file.
+3. Open Chrome and go to `chrome://extensions`.
+4. Turn on **Developer mode** in the top-right.
+5. Click **Load unpacked**.
+6. Select the unzipped `ut-registration-speedrunner` folder.
+7. Click the extension icon, enter your classes and unique numbers, and make sure Registration Mode is on.
 
 After changing extension files, click **Reload** on `chrome://extensions` and refresh any registration tabs that were already open.
 
@@ -69,3 +78,7 @@ Off by default. In the popup, flip **Auto-submit** on and every **Ctrl+Shift+S**
 ## Privacy
 
 UT Registration SpeedRunner stores course names, Unique Numbers, positions, and settings locally in your browser using Chrome storage. The extension does not collect, sell, transmit, or remotely store user data. Clipboard access is only used to write selected Unique Numbers when requested by the user.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
