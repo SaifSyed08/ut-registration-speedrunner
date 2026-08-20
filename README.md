@@ -32,8 +32,18 @@ After changing extension files, click **Reload** on `chrome://extensions` and re
 4. Press **Ctrl + Shift + F** to move to the next class.
 5. Press **Ctrl + Shift + A** if you overshot a backup.
 
+## Auto-submit (optional)
+
+Off by default. In the popup, under **Danger zone**, flip **Auto-submit** on and every **Ctrl+Shift+S** paste will also click the page's **Submit** button for you, right after the number is inserted. This lets you go through a whole queue of classes back-to-back without touching the mouse.
+
+- Turning it on requires an extra confirmation dialog, since it removes your last manual check before a registration action fires.
+- It only fires after the number was actually typed into a focused input — not when the number was only copied to your clipboard because nothing was focused.
+- It looks for a submit button inside the same `<form>` as the field you pasted into first, then falls back to any submit button on the page.
+- Registration on the real UT system processes one action (one unique number) per Submit click, then reloads/updates the page — auto-submit speeds up that per-class loop, it doesn't turn multiple classes into a single request.
+- Double-check your class list and unique-number order in the popup before you turn this on. With auto-submit on there's no confirmation step between paste and submit, so a wrong or mis-ordered unique number gets submitted immediately.
+
 ## Notes
 
-- The extension does not submit anything for you. It only fills the currently focused input or copies the number if no input is focused.
+- With auto-submit off (the default), the extension does not submit anything for you. It only fills the currently focused input or copies the number if no input is focused.
 - Shortcuts are handled by the script injected into the current page, rather than Chrome's global extension-command system.
-- The practice mock page is not the real registration page and does not submit anything to UT.
+- The practice mock page is not the real registration page and does not submit anything to UT, so it's a safe place to try auto-submit before using it for real.

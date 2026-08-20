@@ -95,6 +95,17 @@
   text-transform: uppercase;
 }
 
+#reg-speedrunner-hud .reg-pill-auto {
+  background: #dc2626;
+  color: #fff;
+  animation: reg-pill-auto-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes reg-pill-auto-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .72; }
+}
+
 #reg-speedrunner-hud .reg-restore-btn {
   display: inline-grid;
   place-items: center;

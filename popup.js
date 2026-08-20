@@ -9,6 +9,7 @@ const COURSE_COLORS = ["#2f80ed", "#d97706", "#a855f7", "#16a34a", "#dc2626", "#
 
 const defaultState = {
   enabled: true,
+  autoSubmit: false,
   currentCol: 0,
   deletedCourses: [],
   courses: [
@@ -27,6 +28,7 @@ let reviewPromptState = { openCount: 0, dismissed: false, clicked: false, snooze
 const $ = (id) => document.getElementById(id);
 const coursesEl = $("courses");
 const enabledToggle = $("enabledToggle");
+const autoSubmitToggle = $("autoSubmitToggle");
 const helpBtn = $("helpBtn");
 const helpMenu = $("helpMenu");
 
@@ -67,6 +69,7 @@ function normalizeColor(value, fallback = "#bf5700") {
 function normalizeState(input) {
   const next = input && typeof input === "object" ? input : structuredClone(defaultState);
   next.enabled = Boolean(next.enabled);
+  next.autoSubmit = Boolean(next.autoSubmit);
   next.currentCol = Number.isInteger(next.currentCol) ? next.currentCol : 0;
   next.courses = Array.isArray(next.courses) ? next.courses : [];
   next.deletedCourses = Array.isArray(next.deletedCourses) ? next.deletedCourses : [];
@@ -152,6 +155,7 @@ function collectFromDom() {
   });
   return normalizeState({
     enabled: enabledToggle.checked,
+    autoSubmit: autoSubmitToggle.checked,
     currentCol: state.currentCol,
     deletedCourses: state.deletedCourses,
     courses
@@ -180,6 +184,7 @@ async function persistReorder(fromIndex, toIndex) {
 }
 function renderStatus() {
   enabledToggle.checked = state.enabled;
+  autoSubmitToggle.checked = state.autoSubmit;
 }
 
 function renderCourses() {
@@ -380,6 +385,18 @@ $("resetBtn").addEventListener("click", async () => {
 
 $("saveBtn").addEventListener("click", () => saveState(true));
 enabledToggle.addEventListener("change", () => saveState(false));
+autoSubmitToggle.addEventListener("change", () => {
+  if (autoSubmitToggle.checked) {
+    const confirmed = window.confirm(
+      "Turn on auto-submit?\n\nEvery Ctrl+Shift+S paste will also click the page's Submit button immediately — there's no extra confirmation step. Only enable this once you've double-checked your unique numbers and their order."
+    );
+    if (!confirmed) {
+      autoSubmitToggle.checked = false;
+      return;
+    }
+  }
+  saveState(false);
+});
 $("dismissTutorialBtn").addEventListener("click", () => setTutorialSeen(true));
 $("dismissSampleCalloutBtn").addEventListener("click", () => setFirstRunCardSeen(true));
 helpBtn.addEventListener("click", () => setHelpMenuOpen(helpMenu.hidden));
