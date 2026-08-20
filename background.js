@@ -3,6 +3,7 @@ const FIRST_RUN_CARD_SEEN_KEY = "regSpeedRunnerFirstRunCardSeen";
 
 const DEFAULT_STATE = {
   enabled: true,
+  autoSubmit: false,
   currentCol: 0,
   deletedCourses: [],
   courses: [

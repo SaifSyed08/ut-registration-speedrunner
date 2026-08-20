@@ -55,8 +55,9 @@ function normalizeColor(value, fallback = "#bf5700") {
 }
 
 function normalizeState(input) {
-  const next = input && typeof input === "object" ? input : { enabled: true, currentCol: 0, courses: [] };
+  const next = input && typeof input === "object" ? input : { enabled: true, autoSubmit: false, currentCol: 0, courses: [] };
   next.enabled = Boolean(next.enabled);
+  next.autoSubmit = Boolean(next.autoSubmit);
   next.currentCol = Number.isInteger(next.currentCol) ? next.currentCol : 0;
   next.courses = Array.isArray(next.courses) ? next.courses : [];
   next.deletedCourses = Array.isArray(next.deletedCourses) ? next.deletedCourses : [];
@@ -137,6 +138,7 @@ function createHud() {
         <span class="reg-subtitle">Drag to move overlay</span>
       </div>
       <div class="reg-top-actions">
+        <span class="reg-pill reg-pill-auto" data-reg="auto-pill" title="Auto-submit will click Submit for you after every paste. Double-check your unique numbers." hidden>AUTO-SUBMIT</span>
         <span class="reg-pill" title="Your extension is active!">ON</span>
         <button class="reg-restore-btn" data-reg-action="rewind-backups" type="button" title="Reload lists to first uniques" aria-label="Reload lists to first uniques">&#x21bb;</button>
       </div>
@@ -200,6 +202,8 @@ function renderHud(message) {
   const remaining = backupsLeft(course);
 
   hud.querySelector(".reg-message").textContent = message || "Ready";
+  const autoPill = hud.querySelector('[data-reg="auto-pill"]');
+  if (autoPill) autoPill.hidden = !state.autoSubmit;
   hud.querySelector('[data-reg="course"]').textContent = course?.name || "No class loaded";
   const otherCourses = hud.querySelector('[data-reg="other-courses"]');
   otherCourses.replaceChildren();
@@ -419,6 +423,38 @@ async function copyFallback(value) {
   }
 }
 
+const SUBMIT_SELECTOR = 'button[type="submit"], input[type="submit"]';
+
+function findSubmitButton(referenceEl) {
+  const form = referenceEl?.closest?.("form");
+  if (form) {
+    const inForm = form.querySelector(SUBMIT_SELECTOR);
+    if (inForm) return inForm;
+  }
+
+  // Fall back to any submit-typed control on the page, then to a button whose
+  // visible text says "submit" (some registration pages don't set type="submit").
+  const anySubmit = document.querySelector(SUBMIT_SELECTOR);
+  if (anySubmit) return anySubmit;
+
+  const textMatch = [...document.querySelectorAll("button")]
+    .find((btn) => /\bsubmit\b/i.test(btn.textContent || ""));
+  return textMatch || null;
+}
+
+function autoClickSubmit(referenceEl) {
+  const button = findSubmitButton(referenceEl);
+  if (!button || button.disabled) {
+    flashMessage("Auto-submit is on, but no Submit button was found.");
+    return;
+  }
+  // Small delay so any page validation/input listeners triggered by the paste
+  // finish running before the click fires.
+  setTimeout(() => {
+    button.click();
+  }, 150);
+}
+
 async function pasteAndAdvance() {
   if (!state?.enabled || pasteInProgress) return;
   pasteInProgress = true;
@@ -431,6 +467,7 @@ async function pasteAndAdvance() {
   }
 
   try {
+    const focusedEl = document.activeElement;
     const inserted = insertIntoFocusedElement(unique);
     const copied = inserted ? false : await copyFallback(unique);
 
@@ -438,7 +475,10 @@ async function pasteAndAdvance() {
     course.row += 1;
     saveState();
 
-    if (inserted) flashMessage(`Pasted ${unique}${wasLast ? " · no backups left" : " · advanced"}`);
+    const willAutoSubmit = inserted && state.autoSubmit;
+    if (willAutoSubmit) autoClickSubmit(focusedEl);
+
+    if (inserted) flashMessage(`Pasted ${unique}${willAutoSubmit ? " · auto-submitting…" : wasLast ? " · no backups left" : " · advanced"}`);
     else if (copied) flashMessage(`Copied ${unique}. Click the field and press Ctrl+V.`);
     else flashMessage(`Could not paste ${unique}. Click inside the input field first.`);
   } finally {
